@@ -1,0 +1,610 @@
+<title>Quince V5 Strategy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a judge's marked-up score sheet. One reading column, wide tables scroll in place, red pen marks what costs points. */
+:root{
+  --paper:#F5F6F4; --sheet:#FFFFFF; --ink:#18212B; --muted:#5A6672; --rule:#DCE0E3;
+  --navy:#1F3A5F; --navy-soft:#E6ECF3; --pen:#B8322A; --pen-soft:#F7E4E2;
+  --ok:#2E7A4E; --ok-soft:#E1F0E7; --amber:#9A6514; --amber-soft:#F6ECD9; --grey-soft:#ECEEF0;
+  --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111619; --sheet:#182026; --ink:#E5E9EC; --muted:#9AA6B1; --rule:#2B353D;
+  --navy:#9DBBE0; --navy-soft:#1E2B39; --pen:#F08A80; --pen-soft:#3A2220;
+  --ok:#78C99A; --ok-soft:#18301F; --amber:#E2B862; --amber-soft:#33291A; --grey-soft:#232C33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111619; --sheet:#182026; --ink:#E5E9EC; --muted:#9AA6B1; --rule:#2B353D;
+  --navy:#9DBBE0; --navy-soft:#1E2B39; --pen:#F08A80; --pen-soft:#3A2220;
+  --ok:#78C99A; --ok-soft:#18301F; --amber:#E2B862; --amber-soft:#33291A; --grey-soft:#232C33; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 64px}
+.wrap{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(2rem,5vw,2.9rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.6rem;font-weight:700;color:var(--navy)}
+h3{font-size:1.12rem;font-weight:700}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.1rem;max-width:65ch}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+nav{display:flex;flex-wrap:wrap;gap:8px}
+nav a{font-size:.85rem;color:var(--navy);text-decoration:none;border:1px solid var(--rule);background:var(--sheet);padding:4px 10px;border-radius:999px}
+nav a:hover,nav a:focus-visible{border-color:var(--navy);outline:none}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.tile{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.tile .big{font-family:var(--display);font-size:2.3rem;font-weight:700;line-height:1.1}
+.tile .big small{font-size:1rem;color:var(--muted);font-weight:500}
+.tile.main{border-color:var(--navy);border-width:2px}
+.tile.main .big{color:var(--navy)}
+.chip{display:inline-block;font-family:var(--mono);font-size:.68rem;font-weight:600;letter-spacing:.05em;padding:1px 7px;border-radius:4px;vertical-align:2px;white-space:nowrap}
+.v3{background:var(--navy-soft);color:var(--navy)}
+.call{background:var(--amber-soft);color:var(--amber)}
+.cja{background:var(--ok-soft);color:var(--ok)}
+.add{background:var(--grey-soft);color:var(--muted)}
+.holds{background:var(--ok-soft);color:var(--ok)}
+.partly{background:var(--amber-soft);color:var(--amber)}
+.wrong{background:var(--pen-soft);color:var(--pen)}
+.untested{background:var(--grey-soft);color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:.86rem;color:var(--muted)}
+/* tables */
+.tbl{overflow-x:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:.91rem}
+th,td{text-align:left;padding:9px 12px;border-top:1px solid var(--rule);vertical-align:top}
+thead th{border-top:0;font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--paper)}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.total td{font-weight:600;border-top:2px solid var(--ink)}
+.down{color:var(--pen)} .up{color:var(--ok)}
+.wide td{min-width:150px}
+.wide td:first-child{min-width:120px}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card h3{font-size:1rem}
+.card p{font-size:.93rem}
+ul,ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+blockquote{margin:0;padding:12px 16px;border-left:3px solid var(--navy);background:var(--navy-soft);border-radius:0 6px 6px 0;font-size:1.02rem}
+.formula{font-family:var(--mono);font-size:.85rem;background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre;line-height:1.55}
+/* issue tree */
+.tree{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.root{background:var(--navy);color:var(--sheet);border-radius:6px;padding:12px 16px;font-weight:600}
+.branches{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.branch{background:var(--sheet);border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:.9rem;min-width:0}
+.branch h3{font-size:.98rem}
+.branch .to{font-family:var(--mono);font-size:.74rem;color:var(--navy);font-weight:600}
+.branch.trust{border-top-color:var(--amber)}
+.branch.trust .to{color:var(--amber)}
+/* behavioural stages */
+.stage{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.stage-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;justify-content:space-between}
+.stage-head .step{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+/* levers */
+.lever{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.lever .tag{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+.lever h3{font-size:1.15rem}
+.rows{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 14px;font-size:.93rem}
+.rows b{font-family:var(--mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:3px}
+@media (max-width:560px){.rows{grid-template-columns:minmax(0,1fr)}}
+/* slides */
+.slide{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.slide .tag{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.slide h3{font-size:1.2rem;color:var(--navy)}
+/* script + qa */
+.script,.qa{display:flex;flex-direction:column;background:var(--sheet);border:1px solid var(--rule);border-radius:6px}
+.beat{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;padding:14px 16px;border-top:1px solid var(--rule)}
+.beat:first-child{border-top:0}
+.beat .meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.beat .meta strong{color:var(--ink);font-size:.85rem}
+.beat p{font-size:.97rem}
+@media (max-width:560px){.beat{grid-template-columns:minmax(0,1fr);gap:6px}}
+.qa>div{padding:12px 16px;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:4px}
+.qa>div:first-child{border-top:0}
+.qa .q{font-weight:600}
+.qa .a{font-size:.95rem}
+.ph{background:var(--amber-soft);color:var(--amber);font-family:var(--mono);font-size:.85em;padding:0 4px;border-radius:3px}
+footer{font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-direction:column;gap:6px}
+a{color:var(--navy)}
+@media (prefers-reduced-motion:no-preference){nav a{transition:border-color .15s}}
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:14px">
+  <span class="eyebrow">Strategy V5 · Case Competition World Cup, Graduate Track · Quince "Closing the Loop"</span>
+  <h1>Own the Second Purchase</h1>
+  <p class="lede">The full strategy: V3's analytical engine, the latest team call's issue tree and trust thesis, every number checked against the team's Adobe CJA export, and a stage-by-stage behavioural analysis of why first buyers don't come back.</p>
+  <nav aria-label="Sections">
+    <a href="#answer">Answer</a><a href="#tree">Issue tree</a><a href="#behaviour">Behavioural analysis</a><a href="#levers">Levers</a><a href="#numbers">Numbers</a><a href="#budget">Budget</a><a href="#risks">Risks</a><a href="#competition">Competition</a><a href="#capabilities">Capabilities</a><a href="#roadmap">Roadmap</a><a href="#slides">7 slides</a><a href="#appendix">CJA captions</a><a href="#delivery">Delivery</a><a href="#qa">Q&amp;A</a><a href="#neversay">Never say</a>
+  </nav>
+  <div class="legend"><span><span class="chip v3">V3</span> strategy PDF</span><span><span class="chip call">CALL</span> latest team call</span><span><span class="chip cja">CJA</span> team's CJA export</span><span><span class="chip add">EST</span> estimate, to test in the pilot</span></div>
+</header>
+
+<!-- 1 -->
+<section id="answer">
+  <span class="eyebrow">1 · The answer first</span>
+  <h2>Quince is discovered on social but not yet trusted</h2>
+  <blockquote><strong>Governing thought:</strong> Quince pays rented platforms to re-buy customers it already has, and starves the owned channels where customers actually come back. The first order buys trust. Quince never asks for the relationship while that trust is fresh.</blockquote>
+  <p class="lede"><strong>One sentence:</strong> Move $9M of the fixed $120M from rented channels that re-buy existing customers into owned channels that earn the second purchase. That lifts 90-day repeat from 24% to about 31% and cuts blended CAC 12 to 14%, and no money moves until Adobe CJA proves it.</p>
+  <div class="verdict">
+    <div class="tile main"><span class="eyebrow">90-day repeat</span><span class="big num">~31%</span><span class="muted small">From 24%. Range 29.5–33%. Target ≥ 30%.</span></div>
+    <div class="tile main"><span class="eyebrow">Blended CAC (Exhibit J measure)</span><span class="big num">−12 to −14%</span><span class="muted small">$62 → ~$53–55. Target ≤ −10%. Strict new-customer CAC ≈ −8%.</span></div>
+  </div>
+  <div class="cards">
+    <div class="card"><h3>✓ No budget increase</h3><p>Every move is a reallocation inside the $120M. Net change $0, released in gated tranches.</p></div>
+    <div class="card"><h3>✓ No price-led retention</h3><p>No discounts, credits or points. Perks are access only (early access, restock-first). Proof replaces price.</p></div>
+    <div class="card"><h3>✓ Grounded in Adobe CJA</h3><p>Every finding cites a panel (A0 to A7, plus Attribution IQ and the Cohort Table). Every budget move waits for a CJA holdout.</p></div>
+  </div>
+  <p><strong>Sequence:</strong> Option B funds it (months 0–3) → Option A builds it (months 3–9) → Option C proves it (from day 1, trusted from month 6). Three levers: <strong>Capture every buyer</strong>, <strong>Win the Golden Month</strong>, <strong>Never pay twice</strong>. One thread through all three: <strong>trust</strong>.</p>
+</section>
+
+<!-- 2 -->
+<section id="tree">
+  <span class="eyebrow">2 · Issue tree · structure from the call, numbers from CJA</span>
+  <h2>Four branches, three levers, one thread</h2>
+  <div class="tree">
+    <div class="root">Why is 90-day repeat 24% (target ≥ 30%) and blended CAC $62 (target ≤ $56) on a fixed $120M?</div>
+    <div class="branches">
+      <div class="branch"><span class="chip call" style="align-self:flex-start">MONEY</span><h3>Spend goes to over-credited rented reach</h3><p>Retargeted buyers repeat at <span class="num">23.0%</span> vs organic <span class="num">23.4%</span> (A3b). Search brings <span class="num">14.1%</span> of buyers for <span class="num">18.3%</span> of budget and repeats least (<span class="num">9.0%</span>).</p><span class="to">→ Lever 3 · Never pay twice</span></div>
+      <div class="branch"><span class="chip call" style="align-self:flex-start">CUSTOMER MIND</span><h3>One-product, buy-less-buy-better buyers</h3><p>Cashmere is <span class="num">40.7%</span> of buyers with the lowest repeat, <span class="num">13.7%</span>. Home <span class="num">20.8%</span>, jewelry <span class="num">19.5%</span>, beauty <span class="num">18.5%</span> (A6).</p><span class="to">→ Lever 2 · Win the Golden Month</span></div>
+      <div class="branch"><span class="chip call" style="align-self:flex-start">CUSTOMER JOURNEY</span><h3>The purchase leaks and nobody follows up</h3><p><span class="num">77.1%</span> of cart adders never order (A1). <span class="num">1</span> message follows <span class="num">11,610</span> cart adds (A4). Engaged buyers repeat <span class="num">28.1%</span> vs <span class="num">4.7%</span> (A2).</p><span class="to">→ Lever 1 · Capture every buyer</span></div>
+      <div class="branch trust"><span class="chip call" style="align-self:flex-start">BRAND TRUST</span><h3>Found on social, unproven in hand</h3><p><span class="num">45.5%</span> of buyers arrive through prospecting (A3b). <span class="num">25,227</span> of <span class="num">36,566</span> product viewers leave without a cart add (A1).</p><span class="to">→ Trust thread, inside all three levers</span></div>
+    </div>
+  </div>
+
+  <h3>The target arithmetic</h3>
+  <div class="formula">Repeat rate = (engaged share × engaged repeat) + (non-engaged share × non-engaged repeat)
+CJA today:   0.245 × 28.1% + 0.755 × 4.7% = 6.9 + 3.5 = 10.4%  (A2 shows 10.5% on its ~3-month window)
+Lever logic: raise the engaged share (Lever 1), raise repeat inside each segment (Lever 2),
+             buy customers who look like repeaters (Lever 3 seeding).
+
+Strict CAC = $120M ÷ new customers = $120M ÷ ~1.94M = $62
+             (1.94M = Σ channel spend ÷ channel CAC, Exhibit D and G)
+             Falls only if new customers rise at the same spend: cart recovery and product-page proof.
+
+Effective CAC (Exhibit J) = same spend over more purchasing customers as repeat rises
+             +6 pts repeat → −10% to −12%, so each point ≈ −1.67% to −2.0%</div>
+  <p class="small muted">CJA repeat is a ~3-month figure on a 60,000-person illustrative sample, so we use CJA for relative effects and the case (24%) for the baseline.</p>
+</section>
+
+<!-- 3 -->
+<section id="behaviour">
+  <span class="eyebrow">3 · Behavioural analysis · the centrepiece</span>
+  <h2>Why first buyers don't come back, stage by stage</h2>
+  <p class="lede">Each stage pairs CJA evidence with a named behavioural mechanism, a non-price intervention inside one of the three levers, and the CJA test that proves or kills it.</p>
+  <div class="legend"><span><span class="chip cja">MEASURED</span> the behaviour is visible in CJA</span><span><span class="chip untested">HYPOTHESIS</span> the mechanism is inferred; the test decides</span></div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 1 · Discovery on social</span><span class="chip untested">HYPOTHESIS</span></div>
+    <h3>Price-quality heuristic and ambiguity aversion</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>Prospecting brings <span class="num">45.5%</span> of buyers from <span class="num">27,691</span> people (A3b and channel panel). Visitor-to-buyer: prospecting <span class="num">4.26%</span>, organic <span class="num">5.08%</span>.</span>
+      <b>Mechanism</b><span>People read price as a signal of quality. Grade-A cashmere at half the usual price, from a brand with no stores, sounds too good to be true, so the visitor discounts the claim. Unknown quality is avoided more than known risk.</span>
+      <b>Intervention</b><span>Creator wear-tests and material proof in prospecting creative (Lever 3, creators funded from search). Show the evidence, never a lower price.</span>
+      <b>CJA test</b><span>Split prospecting ad sets: proof creative vs current. Read product-page reach and cart rate by campaign in a Fallout panel.</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 2 · Product page</span><span class="chip cja">MEASURED</span></div>
+    <h3>Perceived risk at the moment of commitment</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>60,000 → <span class="num">36,566</span> view a product → <span class="num">11,339</span> add to cart. <span class="num">25,227</span> people leave here, the largest absolute loss in the funnel (A1).</span>
+      <b>Mechanism</b><span>Online-only apparel carries fit and quality risk the buyer can't check by touch. Without signals (reviews in use, care, the return promise), the safe choice is to leave. Social proof lowers that risk.</span>
+      <b>Intervention</b><span>Product-page proof block: fabric close-ups, care guide, return and exchange promise above the fold, creator wear-tests (Lever 1).</span>
+      <b>CJA test</b><span>A/B on the product page, randomized by person. KPI: product view → cart. Estimate: +1 pt (31% → 32%) <span class="chip add">EST</span>.</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 3 · Cart</span><span class="chip cja">MEASURED</span></div>
+    <h3>Unfinished tasks fade without a reminder</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>11,339 add to cart → <span class="num">2,592</span> order: <span class="num">77.1%</span> never buy, above the ~70% benchmark (A1, Exhibit C). A0 logs <span class="num">3,642</span> email and <span class="num">1,215</span> SMS sends, yet <span class="num">1</span> message follows <span class="num">11,610</span> cart adds (A4).</span>
+      <b>Mechanism</b><span>Zeigarnik effect: an unfinished task stays salient for a short window and then fades. Goal gradient: people speed up when they see they are close to done. Endowment: an item already "in my cart" feels partly owned.</span>
+      <b>Intervention</b><span>Triggered cart reminders within hours, framed as "your cart is saved" with the item image. No discount in the message (Lever 1).</span>
+      <b>CJA test</b><span>10% randomized holdout on cart flows. KPI: cart → order. Read the Flow from add_to_cart for the share now followed by a message.</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 4 · Checkout</span><span class="chip cja">MEASURED</span></div>
+    <h3>Friction and the default at the last step</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span><span class="num">5,818</span> start checkout, <span class="num">2,592</span> finish: <span class="num">55.4%</span> drop (A1). App converts carts at <span class="num">27.1%</span> vs web <span class="num">22.7%</span>.</span>
+      <b>Mechanism</b><span>Default effect: people keep the option already chosen for them. Most checkouts have already captured an email, so the abandoner is reachable.</span>
+      <b>Intervention</b><span>Order tracking opens in the app by default, with SMS as the fallback. Marketing consent is a separate, unticked box. Checkout-abandon recovery to the typed email (Lever 1).</span>
+      <b>CJA test</b><span>KPI: app installs and opt-ins per 100 orders, checkout → order. Segment: checkout-initiated, no order, email captured.</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 5 · First delivery</span><span class="chip untested">HYPOTHESIS</span></div>
+    <h3>Peak-end: trust is highest when the parcel opens</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>Only <span class="num">24.5%</span> of buyers engage after order one (A2), though email touched <span class="num">53.6%</span> (A3b). Texts drew <span class="num">30.5%</span> clicks per send, email <span class="num">2.0%</span> (A0).</span>
+      <b>Mechanism</b><span>Peak-end rule: people judge an experience by its best moment and its end. The unboxing is when the quality claim is confirmed. Endowment: registering an item makes it feel more owned.</span>
+      <b>Intervention</b><span>A card in every box: "Register your piece" for its care guide, exchange window and restock-first alerts. It is the only owned touch that reaches 100% of buyers (Lever 1).</span>
+      <b>CJA test</b><span>Card QR carries a campaign code. KPI: registrations per 100 boxes, engaged share. Estimate: 5% of non-engaged buyers register <span class="chip add">EST</span>.</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 6 · Days 0–30</span><span class="chip cja">MEASURED</span></div>
+    <h3>Habits form early or not at all</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>App after order one: <span class="num">21.5%</span> repeat (57/265). SMS: <span class="num">11.7%</span> (37/315). Non-engaged: <span class="num">4.7%</span> (A5, A2). Case: the app vs web-only gap opens fastest in month 1 (14% vs 3%, Exhibit E).</span>
+      <b>Mechanism</b><span>Habit formation needs a cue, a routine and a reward, repeated early. Implementation intentions ("when it arrives, I'll set up care reminders") turn intent into action. Reciprocity: a useful service before any ask.</span>
+      <b>Intervention</b><span>Days 0–30 journey: care and fit tips, quick-exchange, then access-only perks (early access, restock-first). Help first, sell second (Lever 2).</span>
+      <b>CJA test</b><span>Cohort Table: inclusion order, return order, weekly, split by engaged segment. KPI: 30-day repeat vs holdout (Gate 1).</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="stage-head"><span class="step">Stage 7 · Days 30–90</span><span class="chip cja">MEASURED</span></div>
+    <h3>"Buy less, buy better" blocks a second sweater</h3>
+    <div class="rows">
+      <b>CJA evidence</b><span>Cashmere <span class="num">13.7%</span> repeat on <span class="num">1,054</span> buyers. Home <span class="num">20.8%</span>, jewelry <span class="num">19.5%</span>, beauty <span class="num">18.5%</span> (A6). Retargeted visitors convert at <span class="num">4.85%</span>, below organic's <span class="num">5.08%</span>.</span>
+      <b>Mechanism</b><span>Mental accounting: "my sweater budget is spent." Identity: a quality-first shopper won't buy the same item twice. But a new category sits in a different mental account.</span>
+      <b>Intervention</b><span>Cross-sell by material and season: a winter cashmere buyer is shown a cashmere throw or linen sheets in spring, and jewelry and beauty as gifts (Lever 2). Stop paying retargeting to re-show the same sweater (Lever 3).</span>
+      <b>CJA test</b><span>Sequential segment: first order cashmere, then a later order in Home, jewelry or beauty. KPI: second-category rate within 60 days.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Nudges we will not use</h3>
+    <ul>
+      <li><strong>Fake scarcity or countdown timers.</strong> They break trust, the very asset this plan builds.</li>
+      <li><strong>Pre-ticked marketing consent.</strong> Not valid consent for marketing texts under TCPA, and it erodes trust.</li>
+      <li><strong>Discount drips</strong> ("10% off if you come back"). They break constraint 2 and train buyers to wait.</li>
+      <li><strong>Confirm-shaming and hidden unsubscribe.</strong> Short-term clicks, long-term opt-outs.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="levers">
+  <span class="eyebrow">4 · The three levers</span>
+  <h2>What Quince does, who owns it, how CJA proves it</h2>
+
+  <div class="lever">
+    <span class="tag">Lever 1 · Capture every buyer · customer journey</span>
+    <h3>Turn every order into a relationship Quince owns</h3>
+    <div class="rows">
+      <b>V3 backbone</b><span><span class="chip v3">V3</span> Delivery-update opt-in at checkout, live tracking and care in the app, triggered cart and checkout recovery.</span>
+      <b>Call layer</b><span><span class="chip call">CALL</span> Tracking lives in the app (21.5% vs SMS 11.7%), SMS is the fallback. Product-page proof for the 25,227 who leave after viewing.</span>
+      <b>Behaviour</b><span>Defaults, Zeigarnik reminders, peak-end ask at delivery, endowment via "Register your piece".</span>
+      <b>CJA proof</b><span>A1 fallout and device, A2, A4 flow, A5</span>
+      <b>KPI</b><span>Engaged share of buyers (24.5% → ~50%), app installs and opt-ins per 100 orders, cart abandonment, product → cart</span>
+      <b>Owner</b><span>Growth marketing (CRM) with the app product team</span>
+    </div>
+  </div>
+
+  <div class="lever">
+    <span class="tag">Lever 2 · Win the Golden Month · customer mind</span>
+    <h3>Move buyers into a second category within 30 days</h3>
+    <div class="rows">
+      <b>V3 backbone</b><span><span class="chip v3">V3</span> Care, fit and exchange messages in days 0–30. Cross-category journey into sheets, towels, robes and beauty. Access-only perks.</span>
+      <b>Call layer</b><span><span class="chip call">CALL</span> Season-aware routing into the linen and silk Quince already sells (the summer idea without new products). Jewelry and beauty as sticky destinations.</span>
+      <b>Behaviour</b><span>Habit loop, implementation intentions, reciprocity, a new mental account for a new category.</span>
+      <b>CJA proof</b><span>A6 category, Cohort Table, sequential first-purchase segment</span>
+      <b>KPI</b><span>30-day repeat, second-category rate within 60 days, unsubscribe rate (guardrail)</span>
+      <b>Owner</b><span>Lifecycle lead with merchandising</span>
+    </div>
+  </div>
+
+  <div class="lever">
+    <span class="tag">Lever 3 · Never pay twice · money</span>
+    <h3>Stop paying platforms for customers Quince already has</h3>
+    <div class="rows">
+      <b>V3 backbone</b><span><span class="chip v3">V3</span> Suppress owned and recent buyers from retargeting. Branded-search geo holdout. Quarterly reallocation on CJA evidence. Prospecting protected unless proven over-credited.</span>
+      <b>Call layer</b><span><span class="chip call">CALL</span> $1.5M from search to creators after the holdout. Members-only fitting-room test ($1.0M inside the $4M brand line, one US metro, holiday season, entry through the app).</span>
+      <b>Added</b><span><span class="chip add">EST</span> Seed half the prospecting ad sets on the CJA repeat-buyer audience, same $58M, CAC guardrail +5%. This fixes who prospecting buys, the root cause the call named.</span>
+      <b>CJA proof</b><span>Attribution IQ (last vs first touch), A3 vs A3b, share-of-spend index</span>
+      <b>KPI</b><span>Retargeting credit gap, $ moved, new-customer guardrail (≤ 2% drop), 90-day revenue per dollar</span>
+      <b>Owner</b><span>Paid media with analytics</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="numbers">
+  <span class="eyebrow">5 · Numbers · every formula shown</span>
+  <h2>Both targets met with headroom</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Scenario</th><th>Haircuts</th><th class="n">90-day repeat</th><th class="n">vs 30%</th><th class="n">Effective CAC</th></tr></thead>
+    <tbody>
+      <tr><td>Gross plan</td><td>none</td><td class="n">33.0%</td><td class="n up">+3.0</td><td class="n">−15% to −18%</td></tr>
+      <tr><td><strong>Base case</strong></td><td>app 17%, SMS 37% (measured, A2→A5), overlap 15%, new levers 25%</td><td class="n"><strong>31.0%</strong></td><td class="n up"><strong>+1.0</strong></td><td class="n"><strong>−12% to −14%</strong></td></tr>
+      <tr><td>Downside</td><td>50% on everything</td><td class="n">29.5%</td><td class="n down">−0.5</td><td class="n">−9% to −11%</td></tr>
+      <tr><td>Downside + buffers</td><td>perks +0.7, beauty +0.35, at 50%</td><td class="n">30.0%</td><td class="n">0.0</td><td class="n">−10% to −12%</td></tr>
+    </tbody>
+  </table></div>
+  <div class="formula">Gross lever effects (V3): SMS capture +2.4 · app capture +2.0 · cashmere cross-sell +1.9 · triggered journeys +1.4 = 7.7
+V3 CJA-calibrated base = 30.0%
+New levers [EST]: box registration  0.755 × 5% × 10.1 pts = +0.38  (10.1 = (29% − 13%) × (1 − 0.37), Exhibit E)
+                  seeded prospecting 45.5% of buyers × +2 pts      = +0.91
+Base = 30.0 + (0.38 + 0.91) × 0.75 = 31.0%
+Effective CAC = (repeat − 24) × 1.67% to 2.0%   →   7.0 pts → −11.7% to −14.0%
+Strict CAC: cart recovery −6% (V3, after 25% returning haircut)
+            product page +1 pt: 32/31 − 1 = +3.2% orders × 0.75 = +2.4% new customers
+            0.94 ÷ 1.024 = 0.918  →  ≈ −8%</div>
+
+  <div class="cards">
+    <div class="card"><h3>Unit economics on margin</h3><div class="formula" style="white-space:pre-wrap">Blended  $285 × 45% = $128 ÷ $62 = 2.1x
+Web-only $155 × 45% =  $70 ÷ $74 = 0.94x
+App      $410 × 45% = $185
+Web-only → app = $185 − $70 = +$115</div><p>Exhibit H's 4.6x is on revenue. On margin, a web-only prospecting buyer loses money. Converting one into an app user is worth almost two blended CACs.</p></div>
+    <div class="card"><h3>Implied operating targets</h3><div class="formula" style="white-space:pre-wrap">SMS: 2.4 ÷ 10.1  ≈ 24% of buyers newly opted in
+App: 2.0 ÷ 20.75 ≈ 10% newly installed
+     20.75 = (38% − 13%) × (1 − 0.17)
+Engaged share: ~1 in 4 → ~1 in 2</div><p>The box card, app-default tracking and the separate consent ask are how these are reached.</p></div>
+    <div class="card"><h3>Gate 1 is powered</h3><div class="formula" style="white-space:pre-wrap">Detect 30-day repeat 7% → 9%
+α = 5% two-sided, power 80%
+n ≈ 2,900 buyers per arm
+South: 1.94M × 28% ÷ 12 ≈ 45K new/month
+10% holdout ≈ 4.5K/month</div><p>The holdout fills in about three weeks. Month 3 leaves time for the 30-day window.</p></div>
+    <div class="card"><h3>Payback on the same $120M</h3><div class="formula" style="white-space:pre-wrap">+6 pts → ~250K orders (Exhibit J)
+250K × $118 = ~$30M revenue
+× 45% = ~$13.5M contribution / year
+New spend = $0</div><p>Owned spend per active customer rises from $6M ÷ 4.2M = $1.43 to $13.5M ÷ 4.2M = $3.21.</p></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="budget">
+  <span class="eyebrow">6 · Budget · net zero inside $120M</span>
+  <h2>Funded from the least incremental spend first</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Line</th><th class="n">Today $M</th><th class="n">V5 $M</th><th class="n">Change</th><th>Tranche and proof required</th></tr></thead>
+    <tbody>
+      <tr><td>Paid social retargeting</td><td class="n">14</td><td class="n">10</td><td class="n down">−4</td><td>T1, months 1–3: suppress owned and recent buyers, single-page bouncers, cap 3 ads a week; $2M re-aimed at customer-match cross-sell. Attribution IQ shows last-touch over-credit.</td></tr>
+      <tr><td>Paid search</td><td class="n">22</td><td class="n">19</td><td class="n down">−3</td><td>T2, months 3–6: branded-search geo holdout shows organic recovers the traffic.</td></tr>
+      <tr><td>Paid social prospecting</td><td class="n">58</td><td class="n">56</td><td class="n down">−2</td><td>T3, month 6+, conditional: only if Attribution IQ and a holdout prove over-credit. Otherwise stays $58M.</td></tr>
+      <tr><td>Influencer / creators</td><td class="n">16</td><td class="n">17.5</td><td class="n up">+1.5</td><td>With T2, from search. Creator content also feeds product pages and lifecycle creative.</td></tr>
+      <tr><td>Email / SMS / app</td><td class="n">6</td><td class="n">13.5</td><td class="n up">+7.5</td><td>T1 to T3, itemised below.</td></tr>
+      <tr><td>Brand / other</td><td class="n">4</td><td class="n">4</td><td class="n">0</td><td>$1.0M of it funds the members-only fitting-room test.</td></tr>
+      <tr class="total"><td>Total</td><td class="n">120</td><td class="n">120</td><td class="n">0</td><td>Owned share 5% → 11.25%</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Owned-channel item</th><th class="n">$M</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Lifecycle team (~8 roles)</td><td class="n">1.6</td><td>~$200K loaded cost per role</td></tr>
+      <tr><td>Activation and sends (journeys, SMS and push volume)</td><td class="n">1.5</td><td>Tracking messages on every order plus triggered journeys</td></tr>
+      <tr><td>App: tracking, care guides, restock alerts</td><td class="n">1.2</td><td>One product squad for ~2 quarters</td></tr>
+      <tr><td>Creative</td><td class="n">1.2</td><td>Reduced from V3's 1.7; creators now sit in the influencer line</td></tr>
+      <tr><td>Checkout recovery and product-page proof</td><td class="n">1.0</td><td>The two strict-CAC levers</td></tr>
+      <tr><td>Member perks operations</td><td class="n">0.5</td><td>Access only</td></tr>
+      <tr><td>Measurement: holdouts, analysts, CJA workspaces</td><td class="n">0.5</td><td>Makes Option C trustworthy</td></tr>
+      <tr class="total"><td>Total</td><td class="n">7.5</td><td>If T3 never triggers, owned is +5.5 and perks and part of activation scale later. Exhibit I's $2–3M rebuild stays inside the existing $6M.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 7 -->
+<section id="risks">
+  <span class="eyebrow">7 · Risks</span>
+  <h2>Six risks, each with an early warning</h2>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th><th>Early-warning KPI</th></tr></thead>
+    <tbody>
+      <tr><td>Selection bias: loyal people opt in anyway</td><td><span class="chip partly">MEDIUM</span></td><td><span class="chip wrong">HIGH</span></td><td>Measured haircut (A5) built into every number; randomized 10% holdout.</td><td>Pilot vs holdout gap on 30-day repeat</td></tr>
+      <tr><td>Channel owners resist losing budget</td><td><span class="chip wrong">HIGH</span></td><td><span class="chip partly">MEDIUM</span></td><td>Scorecards move from platform ROAS to CJA-measured incremental revenue; tranches move only on shared evidence.</td><td>Tranche release dates vs plan</td></tr>
+      <tr><td>Message fatigue and unsubscribes</td><td><span class="chip partly">MEDIUM</span></td><td><span class="chip partly">MEDIUM</span></td><td>Triggered messages replace batch sends under one frequency cap; help-first content.</td><td>Unsubscribe rate per 1,000 sends; guardrail pauses the next tranche</td></tr>
+      <tr><td>Consent and privacy (TCPA, CCPA, state laws)</td><td><span class="chip holds">LOW</span></td><td><span class="chip wrong">HIGH</span></td><td>Transactional and marketing consent split; marketing box never pre-ticked; CJA data-access controls.</td><td>Consent audit pass rate; complaints</td></tr>
+      <tr><td>Pop-up return unproven</td><td><span class="chip partly">MEDIUM</span></td><td><span class="chip holds">LOW</span></td><td>Capped at $1.0M inside the brand line; one metro, one season; entry through the app so CJA follows attendees.</td><td>App installs per visitor; attendees' 90-day repeat vs matched buyers</td></tr>
+      <tr><td>Platform and signal loss (Meta, TikTok)</td><td><span class="chip wrong">HIGH</span></td><td><span class="chip partly">MEDIUM</span></td><td>The plan itself: owned share 5% → 11.25%, engaged buyers 1 in 4 → 1 in 2.</td><td>Share of orders from owned channels</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 8 -->
+<section id="competition">
+  <span class="eyebrow">8 · Competitive landscape and escalation</span>
+  <h2>Tactics can be copied in months; a trusted, consented base cannot</h2>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Rival</th><th>Retention approach</th><th>Could copy this plan?</th><th>How fast</th><th>Quince's response</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon Fashion</td><td>Real-time cross-category retargeting and recommendations (Exhibit M)</td><td>Already better at paid retargeting</td><td>Now</td><td>Don't fight there. Any bidding war on retargeting raises CPMs for Quince, not Amazon.</td></tr>
+      <tr><td>Uniqlo (digital)</td><td>App-centric loyalty at larger scale, plus stores</td><td>Already has it</td><td>Now</td><td>Copy its app services (tracking, care, restock), not its app-only prices. Trust travels in box and app.</td></tr>
+      <tr><td>Everlane</td><td>Mature email and SMS lifecycle</td><td>Already has it</td><td>Now</td><td>Proof that lifecycle alone is no moat: sold to Shein in 2026 at a reported ~$100M.</td></tr>
+      <tr><td>Cuyana</td><td>Owned-channel loyalty, limited paid scale</td><td>Perks and journeys, yes</td><td>3–6 months</td><td>Can't match Quince's M2C prices or catalogue breadth.</td></tr>
+      <tr><td>Williams-Sonoma</td><td>Unified cross-brand customer file (V3)</td><td>Already has the data layer</td><td>Now</td><td>Its dupe suit against Quince was dismissed on 30 Sept with leave to amend. Messaging talks about material and care, never rivals.</td></tr>
+      <tr><td>Tapestry</td><td>Data platform and AI for customer capture (V3)</td><td>Already has the data layer</td><td>Now</td><td>Different price tier; the lesson is the data layer, which CJA gives Quince.</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Quince's defensible asset becomes a consented, stitched first-party base plus trust earned in the box and the app.</strong> It compounds: at ~1.94M new customers a year, moving the engaged share from 1 in 4 to 1 in 2 adds roughly <span class="num">1.94M × 25% ≈ 480K</span> newly engaged buyers a year <span class="chip add">EST</span>. A rival can copy a journey in a quarter, but not years of consent and trust.</p>
+</section>
+
+<!-- 9 -->
+<section id="capabilities">
+  <span class="eyebrow">9 · Company capabilities</span>
+  <h2>The data exists; the lifecycle muscle doesn't yet</h2>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Capability</th><th>Status</th><th>Owner</th><th class="n">Cost $M</th><th class="n">Green by</th></tr></thead>
+    <tbody>
+      <tr><td>Identity: CJA stitched person ID across web, app, email, SMS</td><td><span class="chip holds">GREEN</span></td><td>Head of Analytics</td><td class="n">0</td><td class="n">now</td></tr>
+      <tr><td>Owned-channel tracking (visits logged only at purchase today)</td><td><span class="chip partly">AMBER</span></td><td>Analytics + CRM engineering</td><td class="n">in 0.5</td><td class="n">month 2</td></tr>
+      <tr><td>Attribution on an order or revenue metric</td><td><span class="chip partly">AMBER</span></td><td>Analytics</td><td class="n">0</td><td class="n">month 1</td></tr>
+      <tr><td>Consent split: transactional vs marketing</td><td><span class="chip partly">AMBER</span></td><td>Legal + CRM</td><td class="n">0</td><td class="n">month 2</td></tr>
+      <tr><td>Activation: CJA audiences to journeys and paid destinations</td><td><span class="chip partly">AMBER</span></td><td>Marketing operations</td><td class="n">in 1.5</td><td class="n">month 3</td></tr>
+      <tr><td>App tracking, care guides, restock alerts</td><td><span class="chip partly">AMBER</span></td><td>CPO, app squad</td><td class="n">1.2</td><td class="n">month 6</td></tr>
+      <tr><td>Lifecycle team and creative (built for batch-and-blast)</td><td><span class="chip wrong">RED</span></td><td>CMO</td><td class="n">2.8</td><td class="n">month 6</td></tr>
+      <tr><td>Channel-owner incentives</td><td><span class="chip wrong">RED</span></td><td>CMO + CFO</td><td class="n">0</td><td class="n">month 3</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cards">
+    <div class="card"><h3>Incentive redesign</h3><p>Every channel scorecard moves from platform-reported ROAS to incremental revenue per dollar, measured in CJA holdouts. Budget follows the scorecard each quarter.</p></div>
+    <div class="card"><h3>Governance cadence</h3><p>A weekly incrementality council: analytics, paid media, CRM and finance in one shared CJA workspace. Monthly gate review with the CMO. Quarterly reallocation.</p></div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="roadmap">
+  <span class="eyebrow">10 · Roadmap, gates and KPIs</span>
+  <h2>Prove in 90 days, scale by month nine</h2>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Action</th><th>What</th><th>Owner</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td>Fund</td><td>Suppress owned and recent buyers from retargeting; release tranche 1</td><td>Paid media + Analytics</td><td>Week 1</td></tr>
+      <tr><td>Pilot</td><td>South (28.6% of CJA buyers, lowest opt-in): app-default tracking, box card, cart and checkout recovery, product-page proof. Randomized 10% person-level holdout.</td><td>Growth marketing</td><td>Months 1–3</td></tr>
+      <tr><td>Measure</td><td>Weekly incrementality council; Attribution IQ and Cohort Table refreshed</td><td>Head of Analytics</td><td>From week 1</td></tr>
+      <tr><td>Build</td><td>Lifecycle team; app tracking and care; material and season journeys</td><td>CMO + CPO</td><td>Months 2–6</td></tr>
+      <tr><td>Test</td><td>Members-only fitting room in one US metro, holiday season, app entry</td><td>Brand + CRM</td><td>Nov–Dec</td></tr>
+      <tr><td>Scale</td><td>National rollout and tranche 2 if Gate 1 passes; Midwest next (lowest repeat, 7.9%); tranche 3 only on proof</td><td>Leadership</td><td>Months 6–12</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Gate</th><th>When</th><th>Pass condition</th></tr></thead>
+    <tbody>
+      <tr><td>Gate 1</td><td>Month 3</td><td>Pilot beats holdout by 2+ pts on 30-day repeat, and new-customer volume falls less than 2%</td></tr>
+      <tr><td>Gate 2</td><td>Month 9</td><td>90-day repeat ≥ 28%; effective CAC ≤ $58</td></tr>
+      <tr><td>Target</td><td>Month 18</td><td>90-day repeat ≥ 30%; effective CAC ≤ $56</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cards">
+    <div class="card"><h3>Lagging</h3><ul><li>90-day repeat rate</li><li>Blended CAC, effective and strict</li><li>Retargeting efficiency (credit gap)</li></ul></div>
+    <div class="card"><h3>Leading</h3><ul><li>Engaged share of buyers</li><li>App installs and opt-ins per 100 orders</li><li>Cart abandonment; product → cart</li><li>30-day repeat; second-category rate</li></ul></div>
+    <div class="card"><h3>Guardrails</h3><ul><li>New customers: no drop over 2%</li><li>Unsubscribe rate</li><li>First-purchase conversion</li><li>Any breach pauses the next tranche</li></ul></div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section id="slides">
+  <span class="eyebrow">11 · The seven slides</span>
+  <h2>One title, one exhibit, three proofs, one line each</h2>
+
+  <div class="slide"><span class="tag">Slide 1 · Cover</span><h3>Own the Second Purchase</h3><p>Subtitle: Turning viral first buyers into repeat customers, at $0 new budget. Team number only.</p></div>
+
+  <div class="slide"><span class="tag">Slide 2 · Executive summary · judges' row format</span><h3>Owning the second purchase lifts repeat to 31%</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Row</th><th>Headline</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Recommendation</strong></td><td>Move $9M from rented to owned reach: capture, Golden Month, never pay twice</td></tr>
+        <tr><td>Market</td><td>Rented reach keeps getting costlier; owned reach doesn't</td></tr>
+        <tr><td>Customer (CJA)</td><td>Engagement, not traffic, decides who buys twice</td></tr>
+        <tr><td>Competitive</td><td>Profitable rivals win on owned data, never discounts</td></tr>
+        <tr><td>Capabilities</td><td>The data exists; the lifecycle muscle doesn't yet</td></tr>
+        <tr><td>Next steps</td><td>Prove in 90 days, scale by month nine</td></tr>
+        <tr><td><strong>Impact</strong></td><td>Repeat 24% → ~31% · CAC −12% to −14% · ✓ $0 new budget ✓ no price-led retention ✓ CJA-grounded</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Say:</strong> "Quince is brilliant at being discovered and bad at being remembered."</p></div>
+
+  <div class="slide"><span class="tag">Slide 3 · Market &amp; industry</span><h3>Rented reach keeps getting costlier; owned reach doesn't</h3>
+    <p><strong>Exhibit:</strong> one stacked bar of the $120M: rented $94M (78%) vs owned $6M (5%).</p>
+    <ol><li>Signal loss: iOS ATT opt-in about 35–50%; Meta Advantage+ default (Dec 2025); TikTok US ownership change (Jan 2026).</li><li>Last-click overstates paid media: in 15 Facebook experiments, observational estimates were often off by 3x or more (Gordon et al. 2019).</li><li>Weak demand: consumer sentiment hit a record-low 44.8 (May 2026), so every customer kept matters more and price can't be the lever.</li></ol>
+    <p><strong>Say:</strong> "Seventy-eight cents of every dollar goes to platforms that see less every year."</p></div>
+
+  <div class="slide"><span class="tag">Slide 4 · Customer &amp; funnel (CJA)</span><h3>Engagement, not traffic, decides who buys twice</h3>
+    <p><strong>Exhibit:</strong> bar chart of repeat: not engaged 4.7% · SMS after order 11.7% · app after order 21.5% (A2, A5). A1 funnel and A4 flow as thumbnails.</p>
+    <ol><li>Engaged buyers repeat 28.1% vs 4.7%; after correcting for order of events, the app still gives 21.5% (A2, A5). Only 1 in 4 engages.</li><li>The purchase leaks: 25,227 leave after a product view, 77.1% of carts never order, 1 message follows 11,610 cart adds (A1, A4).</li><li>Quince pays twice: retargeted buyers repeat at 23.0%, the same as organic; search brings 14.1% of buyers for 18.3% of spend (A3b).</li></ol>
+    <p><strong>Say:</strong> "Buyers who engage after order one come back up to four times as often. Today one in four does."</p></div>
+
+  <div class="slide"><span class="tag">Slide 5 · Competitive landscape</span><h3>Profitable rivals win on owned data, never discounts</h3>
+    <p><strong>Exhibit:</strong> 2×2 of price position vs first-party data maturity, with Quince's arrow to its target.</p>
+    <ol><li>Williams-Sonoma and Tapestry run unified customer data layers; Uniqlo is app-first.</li><li>Lifecycle alone is no moat: Everlane was sold to Shein in 2026 at a reported ~$100M.</li><li>Don't fight Amazon on paid retargeting; build trust where it can't follow, in the box and the app.</li></ol>
+    <p><strong>Say:</strong> "Tactics can be copied in a quarter. Trust and consent take years."</p></div>
+
+  <div class="slide"><span class="tag">Slide 6 · Company capabilities · most nervous speaker</span><h3>The data exists; the lifecycle muscle doesn't yet</h3>
+    <p><strong>Exhibit:</strong> red/amber/green matrix with owner, cost and month to green.</p>
+    <ol><li>Green: the stitched person ID let the team build these cohorts in a day.</li><li>Amber: owned-channel tracking, consent split, app features, activation.</li><li>Red: a batch-and-blast team and ROAS scorecards; both fixed inside the reallocation.</li></ol>
+    <p><strong>Say:</strong> "Every gap closes with money already in the budget."</p></div>
+
+  <div class="slide"><span class="tag">Slide 7 · Next steps</span><h3>Prove in 90 days, scale by month nine</h3>
+    <p><strong>Exhibit:</strong> the what / who / when table with three gates and the three KPIs: 90-day repeat, blended CAC, retargeting efficiency.</p>
+    <ol><li>Week 1: retargeting suppression frees tranche 1.</li><li>Months 1–3: South pilot with a randomized 10% holdout; Gate 1 is powered at ~2,900 buyers per arm.</li><li>Gates work both ways: fail, and the money goes back.</li></ol>
+    <p><strong>Say:</strong> "No money moves until CJA proves it."</p></div>
+</section>
+
+<!-- 12 -->
+<section id="appendix">
+  <span class="eyebrow">12 · Appendix captions · finding + number + so-what + panel</span>
+  <h2>CJA screenshots and their captions</h2>
+  <div class="tbl"><table class="wide">
+    <thead><tr><th>Panel</th><th>Caption</th><th>Confirms the plan if</th><th>Challenges it if</th></tr></thead>
+    <tbody>
+      <tr><td>A1 Fallout</td><td>"77.1% of cart adders never order and 25,227 leave after viewing a product. Recovery and product-page proof are new orders at the same spend (A1)."</td><td colspan="2" class="muted">Already measured.</td></tr>
+      <tr><td>A4 Flow</td><td>"Quince logged 3,642 emails and 1,215 texts, yet 1 message follows 11,610 cart adds. Cart recovery is new money, not optimisation (A4)."</td><td colspan="2" class="muted">Already measured.</td></tr>
+      <tr><td>A5 Segments</td><td>"Counting only engagement after the first order, app users repeat at 21.5% and SMS users at 11.7%, against 4.7%. The effect survives the selection-bias check (A5)."</td><td colspan="2" class="muted">Already measured.</td></tr>
+      <tr><td>Attribution IQ</td><td>"Retargeting earns <span class="ph">[X%]</span> of revenue credit on last touch and <span class="ph">[Y%]</span> on first touch. It closes sales other channels started, so suppression comes first (Attribution IQ)."</td><td>Retargeting's credit falls from last touch to first or linear touch.</td><td>Credit does not fall: tranche 1 shrinks and the gate holds the money.</td></tr>
+      <tr><td>Cohort Table</td><td>"Engaged buyers retain <span class="ph">[X]</span> pts above non-engaged by week 4 and <span class="ph">[Y]</span> pts by week 12. The gap opens in month 1, so the Golden Month is month 1 (Cohort Table)."</td><td>The gap opens in the first 4 weeks.</td><td>The gap opens late: shift journey spend from days 0–30 toward days 30–90.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small muted">Hide the "No value" row in A6 (it is the total). Screenshot at 125% zoom; crop names and avatars.</p>
+</section>
+
+<!-- 13 -->
+<section id="delivery">
+  <span class="eyebrow">13 · Delivery and posture · 4:45 target, 15 s buffer, ~700 words</span>
+  <h2>Run of show</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Slide</th><th>Speaker</th><th class="n">Time</th><th class="n">Words</th><th>Transition out</th></tr></thead>
+    <tbody>
+      <tr><td>1 Cover</td><td>1</td><td class="n">0:10</td><td class="n">25</td><td>"Here's the whole answer."</td></tr>
+      <tr><td>2 Exec summary</td><td>1</td><td class="n">0:45</td><td class="n">115</td><td>"Why now?"</td></tr>
+      <tr><td>3 Market</td><td>2</td><td class="n">0:35</td><td class="n">85</td><td>"So who comes back?"</td></tr>
+      <tr><td>4 Customer (CJA)</td><td>3</td><td class="n">1:10</td><td class="n">170</td><td>"Can rivals beat us to it?"</td></tr>
+      <tr><td>5 Competitive</td><td>4</td><td class="n">0:35</td><td class="n">85</td><td>"Can Quince execute?"</td></tr>
+      <tr><td>6 Capabilities</td><td>5 (most nervous)</td><td class="n">0:35</td><td class="n">85</td><td>"Here's Monday morning."</td></tr>
+      <tr><td>7 Next steps + close</td><td>1 or 2</td><td class="n">0:55</td><td class="n">135</td><td>"It needs to own the second purchase."</td></tr>
+      <tr class="total"><td>Total</td><td></td><td class="n">4:45</td><td class="n">700</td><td>Rehearse to 4:45; every second over 5:00 costs a point.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="cards">
+    <div class="card"><h3>Q&amp;A protocol</h3><ul><li><strong>Router:</strong> speaker 1 repeats the question and names who answers.</li><li><strong>Number first:</strong> open with the figure, then the reason.</li><li><strong>20 seconds,</strong> then stop.</li><li><strong>Concede, then bridge:</strong> "Partly, and we measured it…" then back to the gate.</li><li><strong>Never guess a number;</strong> say what panel would answer it.</li></ul></div>
+    <div class="card"><h3>Posture</h3><ul><li>Calm certainty on measured numbers; open about hypotheses.</li><li>No speaker talks over another.</li><li>The team agrees the three numbers everyone can quote: 28.1 vs 4.7, 77.1, 23.0 vs 23.4.</li></ul></div>
+  </div>
+</section>
+
+<section id="qa">
+  <span class="eyebrow">Finals Q&amp;A · the 15 hardest questions</span>
+  <h2>Number first, under 20 seconds</h2>
+  <div class="qa">
+    <div><span class="q">1. Isn't the app effect selection bias?</span><span class="a">"Partly, and we measured it. Counting only app use after the first order cuts repeat from 25.9% to 21.5%, still 4.6 times non-engaged buyers. That's why repeat is a range and the pilot has a randomized holdout."</span></div>
+    <div><span class="q">2. Can a 60,000-person sandbox size a $120M decision?</span><span class="a">"No, and we don't ask it to. CJA gives relative effects; the case gives the scale: 4.2M customers, $62 CAC. Every dollar waits for a live holdout."</span></div>
+    <div><span class="q">3. How does higher repeat lower CAC?</span><span class="a">"On Exhibit J's measure, the same spend produces more purchasing customers: −12 to −14%. On strict CAC, cart recovery and product-page proof add new customers at the same spend: about −8%."</span></div>
+    <div><span class="q">4. Your base case only just clears 30%.</span><span class="a">"Base is 31%, downside 29.5%, and buffers take the downside to 30%. Gate 2 checks for 28% at month 9, with time to add buffers."</span></div>
+    <div><span class="q">5. Half your buyers got an email. How are only a quarter engaged?</span><span class="a">"Exactly the point. 53.6% received email, 24.5% engaged. Texts got 30.5% clicks per send, email 2.0%. Reach isn't the gap; relevance is."</span></div>
+    <div><span class="q">6. How do you know trust is the problem?</span><span class="a">"We treat it as a hypothesis. 25,227 of 36,566 product viewers leave without a cart add. A person-level product-page test decides it, read in CJA."</span></div>
+    <div><span class="q">7. Isn't a member perk a discount?</span><span class="a">"No. Early access and restock-first alerts are access, not price. No credits, points or partner discounts."</span></div>
+    <div><span class="q">8. Isn't a pop-up a distraction?</span><span class="a">"It's a $1M capture test inside the existing brand line, one metro, one season. Entry is through the app, so CJA follows every attendee. If their repeat doesn't beat matched buyers, it stops."</span></div>
+    <div><span class="q">9. Why move money to influencers?</span><span class="a">"Search brings 14.1% of buyers for 18.3% of budget and repeats at 9%. Influencer brings 13.5% for 13.3%. $1.5M moves only after the branded-search holdout."</span></div>
+    <div><span class="q">10. You don't cut the biggest line.</span><span class="a">"Prospecting brings 45.5% of buyers. We change who it buys by seeding half the ad sets on repeat buyers, inside the same $58M, with a +5% CAC guardrail."</span></div>
+    <div><span class="q">11. What if Attribution IQ shows retargeting is incremental?</span><span class="a">"Then tranche one shrinks. The gate works both ways; we commit to the method, not the cut."</span></div>
+    <div><span class="q">12. Won't more messages drive unsubscribes?</span><span class="a">"We send fewer, triggered messages under one frequency cap, and unsubscribe rate is a guardrail that pauses the next tranche."</span></div>
+    <div><span class="q">13. Why the South?</span><span class="a">"Largest region, 28.6% of CJA buyers, lowest opt-in, so the most headroom. The holdout is randomized inside the South, and about 2,900 buyers per arm fills in about three weeks."</span></div>
+    <div><span class="q">14. What's the margin story?</span><span class="a">"LTV:CAC is 4.6x on revenue but about 2.1x on a 45% margin, and a web-only prospecting buyer returns 0.94x. Moving one into the app is worth about $115 of margin."</span></div>
+    <div><span class="q">15. Why is email's repeat 100% in your data?</span><span class="a">"A tracking seam: owned-channel visits are logged only at purchase. We never quote it, and fixing that tracking is an amber item."</span></div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section id="neversay">
+  <span class="eyebrow">14 · Never say these</span>
+  <h2>The call's misreads</h2>
+  <div class="cards">
+    <div class="card"><h3>"$14K per customer, they should be bankrupt"</h3><p>The sandbox is a 60,000-person illustrative sample. Use $62 and the share-of-spend index.</p></div>
+    <div class="card"><h3>"Email buyers repeat 100%"</h3><p>A tracking seam: 74 clicks, 74 orders, 74 repeaters.</p></div>
+    <div class="card"><h3>"People don't order from the app"</h3><p>21.5% of app users repeat, 4.6× the baseline.</p></div>
+    <div class="card"><h3>"Jewelry and beauty are weak"</h3><p>19.5% and 18.5% repeat, above cashmere's 13.7%.</p></div>
+    <div class="card"><h3>"The landing drop is the biggest"</h3><p>More people leave at product → cart (25,227 vs 23,434).</p></div>
+    <div class="card"><h3>"Paris", "seasonality is proven", "cookie deprecation"</h3><p>Quince is ~90% US. Three months can't separate season from growth. Chrome kept third-party cookies.</p></div>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Sources.</strong> Case figures: the Quince case packet (illustrative). CJA figures: the team's 12-page export of the "Quince CJA" project, data view "Quince Case Data View", 1 Jan to 30 Apr 2026. Team thinking: the strategy PDF (V3, 14 Oct) and the latest team call. Research: Gordon et al. (2019), Marketing Science 38(2); Blake, Nosko &amp; Tadelis (2015), Econometrica 83(1).</p>
+  <p><strong>Public facts checked:</strong> Everlane sold to Shein at a reported ~$100M valuation (<a href="https://puck.news/everlane-is-selling-out-to-shein/">Puck</a>, <a href="https://www.wusf.org/2026-05-22/shein-buys-everlane-which-sold-millennials-the-dream-of-ethical-affordable-luxury">NPR</a>); Quince's $500M at $10.1B, 11 Mar 2026 (<a href="https://whbl.com/2026/03/11/quince-raises-500-million-at-10-1-billion-valuation/">Reuters via WHBL</a>); Michigan sentiment 44.8 in May 2026, a record low (<a href="https://www.newser.com/story/389858/consumer-sentiment-hits-a-record-low.html">Newser</a>); Williams-Sonoma v. Last Brand dismissed 30 Sept with leave to amend (<a href="https://www.thefashionlaw.com/quince-beats-williams-sonoma-false-advertising-claims-over-product-comparisons/">The Fashion Law</a>).</p>
+  <p>The case is fictional; its numbers are treated as the facts. Figures marked EST are estimates to test in the pilot, never Quince disclosures.</p>
+</footer>
+
+</div>
