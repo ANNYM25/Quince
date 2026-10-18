@@ -16,13 +16,13 @@ Target: ~620 spoken words, about 4:45 at ~130 words per minute, leaving room for
 
 **On the slide:** CAC is up 29% and repeat trails peers. Three levers fix it. Capture every buyer with the Quince Passport, because the quarter who engage make up two-thirds of repeaters. Win the golden month with Material Journeys. Never pay twice: CJA suppression stops us re-buying our own customers. Result: about 31% repeat, CAC down 12 to 14%, $9 million re-aimed at net zero.
 
-**Beyond the slide:** Why a blend? Each option covers another's weakness. Paid precision is fast but builds no relationship. Owned lifecycle builds one but is capped by today's list. Attribution proves both. So retargeting starts it, owned channels build it, and CJA holdouts decide every dollar.
+**Beyond the slide:** Why a blend? Each option covers another's weakness. Paid precision is fast but builds no relationship. Owned lifecycle builds one but is capped by today's list. Attribution proves both. So retargeting starts it, owned channels build it, and CJA holdouts decide every dollar. That's why no line moves until the data earns it, and why the plan meets all three constraints.
 
 ## Slide 3 · Market · Speaker B · ~40 s
 
 **On the slide:** Renting reach is getting dearer and blinder. Only 35 to 50% of iOS users allow tracking, Meta's price per ad is up 12%, and sentiment sits near record lows. Prospecting takes 48% of the budget at $74 a customer and keeps only 18%. App buyers repeat 38% against 13% for web-only, yet owned channels get 5%.
 
-**Beyond the slide:** So every extra dollar in prospecting buys the customer least likely to come back. That's a capital-allocation problem, and price can't solve it in this economy. The fix is to move money toward customers who compound.
+**Beyond the slide:** So every extra dollar in prospecting buys the customer least likely to come back. That's a capital-allocation problem, and price can't solve it in this economy. The fix is to move money toward customers who compound: on the case's own numbers, an app buyer is worth $410 over three years, a web-only buyer $155.
 
 ## Slide 4 · Customer (CJA) · Speaker C · ~55 s
 
