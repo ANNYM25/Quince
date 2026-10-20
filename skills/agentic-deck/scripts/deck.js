@@ -16,8 +16,8 @@ const path = require('path');
 const fs = require('fs');
 const pptxgen = require('pptxgenjs');
 const JSZip = require('jszip');
-let React, ReactDOMServer, sharp, lu;
-try { React = require('react'); ReactDOMServer = require('react-dom/server'); sharp = require('sharp'); lu = require('react-icons/lu'); } catch (e) { /* icons optional */ }
+let React, ReactDOMServer, sharp, lu, loadError;
+try { React = require('react'); ReactDOMServer = require('react-dom/server'); sharp = require('sharp'); lu = require('react-icons/lu'); } catch (e) { loadError = e; /* icons and logo sizing need these */ }
 // Flat icon sets by name prefix: Lu = Lucide line (default), Pi = Phosphor (PiXxxFill = filled), Tb = Tabler,
 // Hi = Heroicons 2, Md = Material. One set per deck; filled and line icons never mix on a slide.
 const ICON_SETS = { Lu: 'react-icons/lu', Pi: 'react-icons/pi', Tb: 'react-icons/tb', Hi: 'react-icons/hi2', Md: 'react-icons/md' };
@@ -72,7 +72,7 @@ function warn(msg) { console.warn('[deck] ' + msg); }
 // ---------------------------------------------------------------- icons
 const iconCache = {};
 async function icon(name, color = C.WHITE) {
-  if (!lu) throw new Error('icons need react, react-dom, react-icons and sharp (npm i in scripts/)');
+  if (!lu) throw new Error('icons need react, react-dom, react-icons and sharp: run `npm install` (without --omit=optional; sharp needs its native binary) in scripts/. Cause: ' + (loadError && loadError.message));
   const k = name + color;
   if (iconCache[k]) return iconCache[k];
   const svg = ReactDOMServer.renderToStaticMarkup(React.createElement(iconComponent(name), { color: '#' + color, size: 256, strokeWidth: 2 }));
@@ -362,13 +362,14 @@ function budgetBar(s, o) {
     const col = dark ? C.WHITE : C.NAVY;
     if (fits(lab)) T(s, lab, { x: x + 0.08, y, w: w - 0.16, h, fontSize: TYPE.caption, bold: true, color: col, valign: 'middle', align: 'center' });
     else if (sg.display && h >= 0.42 && fits(sg.label) && fits(sg.display)) T(s, [{ text: sg.label, options: { breakLine: true } }, { text: sg.display }], { x: x + 0.04, y, w: w - 0.08, h, fontSize: TYPE.caption - 1, bold: true, color: col, valign: 'middle', align: 'center' });
-    else shorts.push({ x, text: sg.short || (sg.label + ' ' + (sg.display || '')).trim() });
+    else shorts.push({ x, text: sg.short || (sg.label + ' ' + (sg.display || '')).trim(), color: [C.LT, C.PALE, C.BG, C.WHITE].includes(sg.fill) ? C.NAVY : sg.fill || C.NAVY });
     x += w;
   });
   const cap = shorts.map((t) => t.text).join('  ·  '), need = (cap.length * TYPE.source * CHAR_W) / 72 + 0.2;
   const from = shorts.length ? shorts[0].x : x0 + W, room = x0 + W - from;
   const stack = need > room + 0.3, cw = stack ? Math.max(room, Math.max(...shorts.map((t) => t.text.length)) * TYPE.source * CHAR_W / 72 + 0.2) : Math.max(room, need);
-  if (shorts.length) T(s, stack ? shorts.map((t) => t.text).join('\n') : cap, { x: x0 + W - cw, y: y + h + 0.04, w: cw, h: stack ? 0.36 : 0.22, fontSize: TYPE.source, bold: true, color: C.BLUE, align: 'right' });
+  const capRuns = shorts.map((t, i) => ({ text: t.text + (stack || i === shorts.length - 1 ? '' : '  ·  '), options: { color: t.color, breakLine: stack && i < shorts.length - 1 } }));
+  if (shorts.length) T(s, capRuns, { x: x0 + W - cw, y: y + h + 0.04, w: cw, h: stack ? 0.36 : 0.22, fontSize: TYPE.source, bold: true, color: C.BLUE, align: 'right' });
   return y + h + 0.3;
 }
 
@@ -389,7 +390,10 @@ async function matrix(deck, s, o) {
       ih = ar > 6 ? 0.16 : ar > 3.5 ? 0.2 : 0.26; iw = Math.min(1.4, ih * ar); cw = iw + 0.3;
     } else cw = 0.3 + (it.label.length * TYPE.caption * CHAR_W) / 72;
     const cx = x0 + 0.2 + it.x * (w - 0.4), cy = y0 + h - 0.2 - it.y * (h - 0.4);
-    placed.push({ it, cw, iw, ih, cx, cy });
+    const me = { it, cw, iw, ih, cx, cy };
+    placed.push(me);
+    // a target ("where we move to") takes part in the de-overlap like any chip
+    if (it.to) placed.push({ ghost: true, owner: me, it: it.to, cw: Math.max(cw, 0.3 + ((it.to.label || '').length * TYPE.caption * CHAR_W) / 72), cx: x0 + 0.2 + it.to.x * (w - 0.4), cy: y0 + h - 0.2 - it.to.y * (h - 0.4) });
   }
   const pad = 0.1;
   const clamp = (p) => { p.cx = Math.min(Math.max(p.cx, x0 + pad + p.cw / 2), x0 + w - pad - p.cw / 2); p.cy = Math.min(Math.max(p.cy, y0 + pad + 0.21), y0 + h - pad - 0.21); };
@@ -414,16 +418,14 @@ async function matrix(deck, s, o) {
     if (q[3]) T(s, q[3], Object.assign({ x: x0 + w / 2 + 0.08, y: y0 + h - 0.3, w: w / 2 - 0.2, h: 0.22, align: 'right' }, qs));
   }
   // the move: item.to = { x, y, label } draws a dashed target ring and an arrow from today to target
-  for (const p of placed) {
-    const to = p.it.to;
-    if (!to) continue;
-    const tx = x0 + 0.2 + to.x * (w - 0.4), ty = y0 + h - 0.2 - to.y * (h - 0.4);
-    RR(s, { x: tx - p.cw / 2, y: ty - 0.21, w: p.cw, h: 0.42, fill: { color: C.ICE }, line: { color: C.BLUE, width: 1, dashType: 'dash' }, rectRadius: 0.21 });
-    if (to.label) T(s, to.label, { x: tx - p.cw / 2, y: ty - 0.21, w: p.cw, h: 0.42, fontSize: TYPE.caption, bold: true, color: C.BLUE, align: 'center', valign: 'middle' });
-    const dy = ty > p.cy ? -0.21 : 0.21;
-    arrow(s, p.cx, p.cy - dy, tx, ty + dy, C.BLUE, 1.5);
+  for (const g of placed.filter((q) => q.ghost)) {
+    const p = g.owner;
+    RR(s, { x: g.cx - g.cw / 2, y: g.cy - 0.21, w: g.cw, h: 0.42, fill: { color: C.ICE }, line: { color: C.BLUE, width: 1, dashType: 'dash' }, rectRadius: 0.21 });
+    if (g.it.label) T(s, g.it.label, { x: g.cx - g.cw / 2, y: g.cy - 0.21, w: g.cw, h: 0.42, fontSize: TYPE.caption, bold: true, color: C.BLUE, align: 'center', valign: 'middle' });
+    const up = g.cy < p.cy;
+    arrow(s, p.cx, up ? p.cy - 0.23 : p.cy + 0.23, g.cx, up ? g.cy + 0.23 : g.cy - 0.23, C.BLUE, 1.5);
   }
-  for (const p of placed) {
+  for (const p of placed.filter((q) => !q.ghost)) {
     const it = p.it;
     if (it.logo) {
       card(s, p.cx - p.cw / 2, p.cy - 0.21, p.cw, 0.42, { fill: C.WHITE, border: it.accent ? C.BLUE : C.LINE, borderW: it.accent ? 1.5 : 0.75, radius: 0.21 });

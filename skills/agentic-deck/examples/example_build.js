@@ -20,7 +20,7 @@ const { C, TYPE } = D;
 
   // 2 · Executive summary: complication strip, three levers with proof, the result
   {
-    const { s, y0 } = D.slide(deck, 'Re-aiming $9M to owned channels lifts repeat 24% → ~31%', {
+    const { s, y0 } = D.slide(deck, 'Moving up to $9M to owned channels lifts repeat 24% → ~31%', {
       source: 'Source: case Exhibits B, G, J; Adobe CJA sandbox (A2, A3b, Cohort Table). CAC on Exhibit J’s blended definition; strict new-customer CAC ≈ −8% (appendix 26).',
       notes: 'Open with the one-sentence answer: own the second purchase by moving up to $9M from rented to owned channels, with holdouts deciding every dollar. Point at the navy tile. If asked about Exhibit D (retargeted 22% vs organic 35%): different window and population from CJA A3b (23.0% vs 23.4%); both say retargeting earns no repeat premium.',
     });
@@ -29,10 +29,10 @@ const { C, TYPE } = D;
       y: y + 0.18, h: 2.62, items: [
         { icon: 'LuIdCard', title: 'Capture every buyer', body: 'Passport card and app tracking in every box', metric: 'Engaged share 25% → 50%',
           bars: [{ label: 'Engaged buyers', value: 24.5, display: '24.5%', muted: true }, { label: 'Their repeat share', value: 66, display: '66%', accent: true }], barMax: 70, barLabelW: 1.6 },
-        { icon: 'LuCalendarHeart', title: 'Win the golden month', body: 'Care guide at delivery, next category by day 21', metric: '30-day repeat +2 pts', accent: true,
-          bars: [{ label: 'Engaged repeat', value: 28.1, display: '28.1%', accent: true }, { label: 'Not engaged', value: 4.7, display: '4.7%', muted: true }], barMax: 30, barLabelW: 1.6 },
+        { icon: 'LuCalendarHeart', title: 'Win the golden month', body: 'Care guide at delivery; gap is self-selected (appx 22)', metric: '30-day repeat +2 pts', accent: true,
+          bars: [{ label: 'Engaged repeat', value: 28.1, display: '28.1%', accent: true }, { label: 'Not engaged', value: 4.7, display: '4.7%', muted: true }], barMax: 70, barLabelW: 1.6 },
         { icon: 'LuShieldOff', title: 'Never pay twice', body: 'Suppression stops re-buying our customers', metric: 'Orders per $ beat the holdout',
-          bars: [{ label: 'Retargeted', value: 23.0, display: '23.0%', muted: true }, { label: 'Organic', value: 23.4, display: '23.4%', accent: true }], barMax: 25, barLabelW: 1.6 },
+          bars: [{ label: 'Retargeted', value: 23.0, display: '23.0%', muted: true }, { label: 'Organic', value: 23.4, display: '23.4%', accent: true }], barMax: 70, barLabelW: 1.6 },
       ],
     });
     y = D.statTiles(s, {
@@ -44,17 +44,17 @@ const { C, TYPE } = D;
     });
     const chips = ['Same $120M', 'No discounts, ever', 'Sized in Adobe CJA, proven by holdout'];
     let cx = D.G.L;
-    for (const c of chips) cx += D.pill(s, c, cx, y + 0.12, { fill: C.PALE, color: C.NAVY, h: 0.3 }) + 0.12;
-    await D.image(deck, s, A('adobe.png'), cx + 0.4, y + 0.27, 0.7, 0.2);
+    for (const c of chips) cx += D.pill(s, c, cx, y + 0.2, { fill: C.PALE, color: C.NAVY, h: 0.3 }) + 0.12;
+    await D.image(deck, s, A('adobe.png'), cx + 0.4, y + 0.35, 0.7, 0.2);
   }
 
   // 3 · Customer evidence: three headed panels + a full-width strip (council slide 4)
   {
-    const { s, y0 } = D.slide(deck, '77% of carts stall, yet the 25% who engage make up 66% of repeaters', {
+    const { s, y0 } = D.slide(deck, '24.5% of buyers engage, yet they make up 66% of repeaters', {
       source: 'Source: Adobe CJA, Quince Case Data View, 1 Jan to 30 Apr 2026 (Fallout A1, Segments A2/A5, Flow A4, Cohort Table, A6); case Exhibits A, D, G.',
     });
     const P = [[0.55, 3.9], [4.75, 3.9], [8.95, 3.83]];
-    D.vline(s, 4.55, y0, 3.95); D.vline(s, 8.75, y0, 3.95);
+    D.vline(s, 4.6, y0, 3.95); D.vline(s, 8.8, y0, 3.95);
     let y = D.panel(s, { x: P[0][0], y: y0, w: P[0][1], head: 'Where the funnel breaks', sub: 'People at each step (Fallout A1)' });
     D.chart(deck, s, 'bar', [{ name: 'People', labels: ['Landing', 'Product', 'Cart', 'Checkout', 'Order'], values: [60000, 36566, 11339, 5818, 2592] }],
       { x: P[0][0] - 0.1, y, w: P[0][1] + 0.1, h: 2.45, hideAxis: true, colors: [C.MID, C.MID, C.BLUE, C.BLUE, C.BLUE], extra: { dataLabelFormatCode: '#,##0' } });
@@ -70,7 +70,7 @@ const { C, TYPE } = D;
     D.T(s, 'Engaged buyers self-select, so the plan assumes far less lift for buyers we newly capture (appendix 22)', { x: P[1][0], y: y + 2.1, w: P[1][1], h: 0.4, fontSize: TYPE.caption, italic: true, color: C.MUTE });
     D.insight(s, '24.5% of buyers engage, yet they are 66% of repeat buyers', { x: P[1][0], y: y + 2.55, w: P[1][1], h: 0.62 });
 
-    y = D.panel(s, { x: P[2][0], y: y0, w: P[2][1], head: 'When, and what next', sub: 'Week-2 repeat (Cohort Table; directional, ~48 buyers a week)' });
+    y = D.panel(s, { x: P[2][0], y: y0, w: P[2][1], head: 'When, and what next', sub: 'Week-2 repeat (Cohort Table; directional, ~48/week)' });
     const y2 = D.hbars(s, { x: P[2][0], y, w: P[2][1], layout: 'inline', labelW: 1.2, max: 21, items: [
       { label: 'Engaged', value: 5.6, display: '5.6%', accent: true }, { label: 'All buyers', value: 2.1, display: '2.1%', muted: true },
     ] });
@@ -90,23 +90,23 @@ const { C, TYPE } = D;
     D.T(s, '60% rented from social', { x: box.x, y: box.y + 0.64, w: 1.6, h: 0.24, fontSize: TYPE.caption, bold: true, color: C.BLUE, valign: 'middle' });
     await D.logoRow(deck, s, { x: box.x + 1.6, w: 1.75, y: box.y + 0.67, h: 0.18, files: [A('meta.png'), A('tiktok.png'), A('pinterest.png')] });
     await D.image(deck, s, A('google.png'), box.x + 6.9 * (58 + 14 + 11) / 120, box.y + 0.76, 0.55, 0.17); // centred under Search $22M
-    D.insight(s, '5% owned: $1.43 per active customer. $31 retargeting CAC counts sales that would happen anyway', { x: box.x + 7.05, y: box.y, w: box.w - 7.05, h: box.h, fill: C.WHITE, size: TYPE.caption });
+    D.insight(s, '$31 retargeting CAC counts sales that would happen anyway; owned gets 5%, $1.43 per active customer', { x: box.x + 7.05, y: box.y, w: box.w - 7.05, h: box.h, fill: C.WHITE, size: TYPE.caption });
   }
 
   // 4 · Competition: matrix with REAL logos + what a rival can copy, and how fast
   {
-    const { s, y0 } = D.slide(deck, 'Rivals copy a 20% discount overnight, but not factory cost plus owned buyers', {
+    const { s, y0 } = D.slide(deck, 'Rivals copy 20% off overnight; our cost and buyers take years', {
       source: 'Source: company filings and press (Amazon Q2 2026, Everlane sale 2024, Williams-Sonoma v. Amazon); team judgement on position. Logos from each company’s Wikipedia infobox.',
     });
     let y = D.panel(s, { x: 0.55, y: y0, w: 5.6, head: 'Price vs owned relationship', sub: 'Y: share of buyers reachable via app, email or SMS (team judgement)' });
-    await D.matrix(deck, s, { x: 0.95, y, w: 5.2, h: 3.25, xLabel: 'Price position: value → premium', yLabel: 'Owned reach →', quadrants: ['Owned, value', '', 'Rented, value', ''], items: [
-      { logo: A('quince.png'), x: 0.18, y: 0.25, accent: true }, { logo: A('shein.png'), x: 0.08, y: 0.9 }, { logo: A('amazon.png'), x: 0.3, y: 0.7 },
-      { logo: A('uniqlo.png'), x: 0.45, y: 0.5 }, { logo: A('everlane.png'), x: 0.7, y: 0.55 }, { logo: A('williams_sonoma.png'), x: 0.85, y: 0.82 },
+    await D.matrix(deck, s, { x: 0.95, y, w: 5.2, h: 3.25, xLabel: 'Price position: value → premium', yLabel: 'Owned reach →', quadrants: ['Owned, value', 'Owned, premium', 'Rented, value', 'Rented, premium'], items: [
+      { logo: A('quince.png'), x: 0.18, y: 0.22, accent: true, to: { x: 0.24, y: 0.72, label: 'Quince target' } }, { logo: A('shein.png'), x: 0.08, y: 0.9 }, { logo: A('amazon.png'), x: 0.3, y: 0.7 },
+      { logo: A('everlane.png'), x: 0.7, y: 0.5 }, { logo: A('williams_sonoma.png'), x: 0.85, y: 0.82 },
     ] });
     D.vline(s, 6.45, y0, 4.25);
     y = D.panel(s, { x: 6.7, y: y0, w: 6.08, head: 'What a rival can copy, and how fast', sub: 'Time to match each part of the plan' });
-    D.hbars(s, { x: 6.7, y, w: 6.08, layout: 'inline', labelW: 2.3, rowH: 0.42, max: 36, items: [
-      { label: 'A 20% discount', value: 1, display: 'Overnight', muted: true },
+    D.hbars(s, { x: 6.7, y, w: 6.08, layout: 'inline', labelW: 2.6, rowH: 0.42, max: 36, items: [
+      { label: '20% off', value: 1, display: 'Overnight', muted: true },
       { label: 'Journeys and suppression', value: 4, display: 'A quarter or two', color: C.MID },
       { label: 'Factory cost + opted-in buyers', value: 30, display: 'Years', accent: true },
     ] });
@@ -126,7 +126,7 @@ const { C, TYPE } = D;
 
   // 5 · Journey row with flat icons (council slide 16)
   {
-    const { s, y0 } = D.slide(deck, 'Only 24.5% of buyers engage, so we ask when the box opens', {
+    const { s, y0 } = D.slide(deck, 'We ask for the opt-in at delivery to lift engaged 24.5% → 50%', {
       source: 'Source: Adobe CJA panels A1, A2, A4, A5, A6 and Cohort Table; mechanisms are hypotheses the pilot tests.',
     });
     await D.journey(s, { y: y0 + 0.2, h: 4.8, steps: [
@@ -134,9 +134,9 @@ const { C, TYPE } = D;
       { icon: 'LuShirt', title: 'Product page', stat: '25,227 leave here', mech: 'Price signals quality', fix: 'Proof Creators' },
       { icon: 'LuShoppingCart', title: 'Cart', stat: '77% never order', mech: 'Open loop fades', fix: 'Saved Cart' },
       { icon: 'LuSmartphone', title: 'Checkout', stat: 'App 27.1% vs web 22.7%', mech: 'Default effect', fix: 'Track It in the App' },
-      { icon: 'LuPackageOpen', title: 'Delivery', stat: '24.5% engage (A2)', mech: 'Peak-end effect', fix: 'Quince Passport', accent: true },
+      { icon: 'LuPackageOpen', title: 'Delivery', stat: '24.5% → 50% target', mech: 'Peak-end effect', fix: 'Quince Passport', accent: true },
       { icon: 'LuCalendarDays', title: 'Days 0 to 30', stat: 'Week-2 peak 5.6%', mech: 'Habit formation', fix: 'Care Calendar' },
-      { icon: 'LuHouse', title: 'Days 30 to 90', stat: 'Cashmere 13.7%', mech: 'Mental accounting', fix: 'Material Journeys' },
+      { icon: 'LuRepeat', title: 'Days 30 to 90', stat: 'Cashmere 13.7%', mech: 'Mental accounting', fix: 'Material Journeys' },
     ] });
     await D.takeaway(s, 'Trust peaks when the parcel opens, so the Passport goes in the box, never a discount code', 6.2);
   }
@@ -158,10 +158,10 @@ const { C, TYPE } = D;
       { value: '+2 pts', label: '30-day repeat vs holdout', basis: 'Golden month · lifecycle team', accent: true },
       { value: '> holdout', label: 'Orders per retargeting $', basis: 'Never pay twice · paid media' },
     ] });
-    D.decisionCards(s, { y: y + 2.06, h: 0.82, items: [
-      { head: 'Scale', when: 'all three clear', then: 'search then prospecting, months 4 to 9' },
-      { head: 'Adjust', when: 'mixed by lever', then: 'keep winners, re-test 60 days' },
-      { head: 'Stop', when: 'nothing beats holdout', then: 'the $14M stays where it is' },
+    await D.decisionCards(s, { y: y + 2.06, h: 0.82, items: [
+      { head: 'Scale', icon: 'LuTrendingUp', when: 'all three clear', then: 'search then prospecting, months 4 to 9' },
+      { head: 'Adjust', icon: 'LuSlidersHorizontal', when: 'mixed by lever', then: 'keep winners, re-test 60 days' },
+      { head: 'Stop', icon: 'LuCircleStop', when: 'nothing beats holdout', then: 'the $14M stays where it is' },
     ] });
     await D.takeaway(s, 'Up to $9M moves rented → owned, and holdouts decide every dollar', 6.25);
   }

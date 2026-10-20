@@ -110,7 +110,7 @@ Without a subagent tool (e.g. claude.ai chat), run each reviewer as a separate p
 
 ## 8. Deliver
 
-Files: `<Name>.pptx`, `<Name>.pdf`, `<Name>.html` (and `review/` if the user wants the trail). Reply with: what was built, the one-sentence answer, the titles in order, the scoreboard (round by round), decisions taken when agents disagreed, and every `[TBD]` or judgement-based number. No filler.
+Files: `<Name>.pptx`, `<Name>.pdf` (from the review pack or LibreOffice), `<Name>.html` (`python3 scripts/viewer.py <Name>.pdf <Name>.pptx <Name>.html`: one self-contained file, arrow keys, speaker notes on N), and `review/` if the user wants the trail. Reply with: what was built, the one-sentence answer, the titles in order, the scoreboard (round by round), decisions taken when agents disagreed, and every `[TBD]` or judgement-based number. No filler.
 
 ## 9. Editing an existing deck
 

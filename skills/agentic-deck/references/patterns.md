@@ -22,7 +22,7 @@
 | Pattern | Call | Use when | Exemplar |
 |---|---|---|---|
 | SCQ strip | `scqStrip(s, { y, lead, text })` | First block of the exec summary: situation and complication with numbers | 02 |
-| Lever cards | `await leverCards(s, { y, h, items: [{ icon, title, body, metric, accent }] })` | 2 to 4 levers or options, each with proof and a metric pill | 02 |
+| Lever cards | `await leverCards(s, { y, h, items: [{ icon, title, body, metric, accent, bars: [{ label, value, display, accent, muted }], barMax, barLabelW }] })` | 2 to 4 levers, each proven with mini labelled bars (use one `barMax` across cards so lengths compare) and a metric pill | 02 |
 | Stat tiles | `statTiles(s, { y, h, items: [{ value, label, basis, accent }] })` | 2 to 5 hero numbers with their basis; one accent | 02, 03 |
 | Headed panel | `panel(s, { x, y, w, head, sub })` → content y | Each third of a dense evidence slide; separate with `vline` | 04 |
 | Labelled bars | `hbars(s, { x, y, w, items: [{ label, value, display, accent, muted, color }], layout: 'stacked' or 'inline', labelW, rowH, max })` | Any comparison; replaces sentences | 04, 21 |
@@ -31,13 +31,13 @@
 | Full-width strip | `strip(s, { y, h, head, labelW })` → inner box | A fourth fact along the bottom (budget split, scope) | 04 |
 | Budget bar | `budgetBar(s, { x, y, w, h, label, segments: [{ label, display, value, fill, short }] })` | A total split to scale; narrow segments get one shared caption | 04, 21 |
 | Funnel | `funnel(s, { y, w, stages: [{ label, value, display, drop, accent }] })` | Conversion steps with drop-off chips | |
-| Matrix | `await matrix(deck, s, { x, y, w, h, xLabel, yLabel, items: [{ logo or label, x, y, accent }] })` | Positioning with real logos; axis labels carry units | 05 |
+| Matrix | `await matrix(deck, s, { x, y, w, h, xLabel, yLabel, quadrants: [tl, tr, bl, br], items: [{ logo or label, x, y, accent, to: { x, y, label } }] })` | Positioning with real logos; chips are clamped inside the frame and pushed apart; `to` draws the move (dashed target + arrow), which is how a matrix shows strategy rather than just position | 05 |
 | Icon list | `await iconList(s, { x, y, w, rowH, items: [{ icon, title, body, accent }] })` | 3 to 5 reasons, risks, facts | 03 |
 | Journey row | `await journey(s, { y, h, steps: [{ icon, title, stat, mech, fix, accent }] })` | Customer journey: stage → evidence → mechanism → our fix | 16 |
 | Process chart | `await processChart(s, { y, h, steps: [{ when, icon, title, body, accent }] })` | Any plan or sequence; never a table | 07 |
 | Gantt | `gantt(s, { y, weeks, phases: [[label, a, b]], rows: [{ label, bars: [[a, b, 'build' or 'live']], milestones: [[week, label]], kpi }], kpiW })` | Week-level plan with milestones and KPIs | 07 |
 | Timeline | `timeline(s, { y, items: [{ when, title, body, accent }] })` | Months or phases on one line | |
-| Decision cards | `decisionCards(s, { y, h, items: [{ head, when, then, color }] })` | Scale / adjust / stop; gates | 07 |
+| Decision cards | `await decisionCards(s, { y, h, items: [{ head, icon, when, then, color }] })` | Scale / adjust / stop; gates | 07 |
 | Logo row | `await logoRow(deck, s, { x, y, w, h, files })` | Channels, competitors, partners | 04 |
 | Screenshot | `await screenshot(deck, s, { path, x, y, w, h, callouts: [{ x, y, n }] })` | Tool evidence with numbered callouts (appendix) | |
 | Takeaway | `await takeaway(s, text, y)` | The focal sentence; one per slide at most | 05, 16 |

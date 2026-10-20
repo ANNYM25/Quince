@@ -91,8 +91,30 @@ const QA_JS = () => {
   return out;
 };
 
+// Launch Chromium. If the local Playwright version has no matching browser download, fall back to any
+// installed Chromium (PLAYWRIGHT_BROWSERS_PATH, CHROMIUM_PATH, or the system one) before giving up.
+function findChromium() {
+  const cands = [process.env.CHROMIUM_PATH];
+  const root = process.env.PLAYWRIGHT_BROWSERS_PATH || path.join(require('os').homedir(), '.cache', 'ms-playwright');
+  try {
+    for (const d of fs.readdirSync(root).filter((d) => /^chromium/.test(d)).sort().reverse())
+      for (const sub of ['chrome-linux/chrome', 'chrome-linux64/chrome', 'chrome-headless-shell-linux64/chrome-headless-shell', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium'])
+        cands.push(path.join(root, d, sub));
+  } catch (e) { /* no browsers dir */ }
+  cands.push('/opt/pw-browsers/chromium', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome');
+  return cands.filter(Boolean).find((f) => { try { return fs.statSync(f).isFile(); } catch (e) { return false; } });
+}
 let _browser;
-async function browser() { if (!_browser) _browser = await playwright().chromium.launch(); return _browser; }
+async function browser() {
+  if (_browser) return _browser;
+  const pw = playwright();
+  try { _browser = await pw.chromium.launch(); } catch (e) {
+    const exe = findChromium();
+    if (!exe) throw new Error('No Chromium found. Run `npx playwright install chromium` in scripts/, or set CHROMIUM_PATH. ' + e.message.split('\n')[0]);
+    _browser = await pw.chromium.launch({ executablePath: exe });
+  }
+  return _browser;
+}
 
 async function elementPNG(el, wIn, hIn) {
   const b = await browser();
