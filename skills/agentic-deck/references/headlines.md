@@ -11,7 +11,7 @@ Reverse-engineered from the final, partner-approved Team G27 deck and the BCG Zu
 
 Then two deck-level tests:
 - **Read-aloud test.** Read all titles in order (`review/rN/titles.md`). They must form the argument with no gaps: situation → complication → answer → proof → plan.
-- **One line where possible.** Target ≤ 70 characters (one line at 24pt). Two lines are allowed only when the number and the conclusion need it; three lines never (qa.py fails at 95).
+- **One line where possible.** Target ≤ 56 characters (one line of 24pt Inter Bold in the 10.45 in title box). qa.py measures the wrap with the real Inter Bold metrics, so trust its A2 warning over a character count. Two lines are allowed only when the number and the conclusion need it; three lines never (qa.py fails above 110).
 
 ## The formulas (from the approved deck)
 
@@ -42,7 +42,7 @@ Then two deck-level tests:
 1. Find the slide's single most important number and who it is about.
 2. Ask "so what for the client?"; that clause is the second half.
 3. Choose the formula above that fits, write it, count characters.
-4. Over 70: cut adjectives, then the qualifier, then move the second number into the slide body.
+4. Over 56: cut adjectives, then the qualifier, then move the second number into the slide body.
 5. Re-run the read-aloud test with the new title in place.
 
 ## Before → after bank

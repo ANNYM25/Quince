@@ -55,7 +55,7 @@ const FONT = 'Inter';
 const TYPE = { title: 24, stat: 30, head: 13, body: 11, caption: 9.5, source: 8 };
 const G = {
   W: 13.333, H: 7.5, L: 0.55, R: 12.78, CW: 12.23,
-  titleY: 0.34, titleH: 0.92, titleW: 10.2,
+  titleY: 0.34, titleH: 0.92, titleW: 10.45, // ends 0.2 in left of the logo; 24pt Inter Bold fits ~56 chars a line (arrows, % and digits are wide)
   y0: 1.42, yMax: 6.88, footY: 7.0,
   radius: 0.08,
 };
@@ -170,8 +170,8 @@ function slide(deck, title, o = {}) {
   const s = deck.pres.addSlide();
   deck.page++;
   s.background = { color: C.WHITE };
-  if (title.length > 95) warn(`S${deck.page} title is ${title.length} chars and will run to three lines: "${title}"`);
-  else if (title.length > 70) warn(`S${deck.page} title is ${title.length} chars (two lines). One line is better: "${title}"`);
+  if (title.length > 110) warn(`S${deck.page} title is ${title.length} chars and will run to three lines: "${title}"`);
+  else if (title.length > 58) warn(`S${deck.page} title is ${title.length} chars and probably wraps (qa.py measures it exactly): "${title}"`);
   T(s, title, { x: G.L, y: G.titleY, w: G.titleW, h: G.titleH, fontSize: TYPE.title, bold: true, color: C.NAVY, valign: 'middle', objectName: 'ad-title' });
   furniture(deck, s, false);
   s.addShape('line', { x: G.L, y: G.footY, w: G.CW, h: 0, line: { color: C.LINE, width: 0.75 }, objectName: 'ad-furn-rule' });
@@ -222,8 +222,12 @@ function divider(deck, o) {
   T(s, o.title, { x: 0.7, y: 0.9, w: 11, h: 1.0, fontSize: 40, bold: true, color: C.WHITE });
   if (o.sub) T(s, o.sub, { x: 0.7, y: 1.9, w: 11, h: 0.5, fontSize: 16, color: C.ON_DARK });
   (o.index || []).forEach((col, c) => {
-    T(s, col.head.toUpperCase(), { x: 0.7 + c * 4.1, y: 2.75, w: 3.9, h: 0.3, fontSize: 10, bold: true, color: C.MID, charSpacing: 1 });
-    col.items.forEach(([n, t], k) => runs(s, [{ text: String(n).padEnd(4, ' '), color: C.ON_DARK2, size: 12 }, { text: t, color: C.WHITE, size: 12 }], { x: 0.7 + c * 4.1, y: 3.15 + k * 0.36, w: 3.9, h: 0.32 }));
+    const cx = 0.7 + c * 3.25;
+    T(s, col.head.toUpperCase(), { x: cx, y: 2.75, w: 3.0, h: 0.3, fontSize: 10, bold: true, color: C.MID, charSpacing: 1 });
+    col.items.forEach(([n, t], k) => {
+      T(s, String(n), { x: cx, y: 3.15 + k * 0.36, w: 0.32, h: 0.32, fontSize: 12, color: C.ON_DARK2, align: 'right', valign: 'middle' });
+      T(s, t, { x: cx + 0.45, y: 3.15 + k * 0.36, w: 2.55, h: 0.32, fontSize: 12, color: C.WHITE, valign: 'middle' });
+    });
   });
   return s;
 }
@@ -270,8 +274,10 @@ async function leverCards(s, o) {
     if (it.icon) await iconCircle(s, x + 0.22, o.y + 0.22, 0.5, it.icon, acc ? C.BLUE : C.NAVY);
     else badge(s, x + 0.22, o.y + 0.22, i + 1, acc ? C.BLUE : C.NAVY, 0.5);
     T(s, it.title, { x: x + 0.86, y: o.y + 0.2, w: w - 1.06, h: 0.56, fontSize: TYPE.head, bold: true, color: C.NAVY, valign: 'middle' });
-    T(s, it.body, { x: x + 0.22, y: o.y + 0.9, w: w - 0.44, h: h - 1.55, fontSize: TYPE.body, color: C.BODY });
-    if (textH(it.body, w - 0.44, TYPE.body) > h - 1.55) warn(`card "${it.title}" body overflows; cut words`);
+    const bodyH = it.bars ? 0.42 : h - 1.55;
+    T(s, it.body, { x: x + 0.22, y: o.y + 0.9, w: w - 0.44, h: bodyH, fontSize: TYPE.body, color: C.BODY });
+    if (textH(it.body, w - 0.44, TYPE.body) > bodyH + 0.05) warn(`card "${it.title}" body overflows; cut words`);
+    if (it.bars) hbars(s, { x: x + 0.22, y: o.y + 1.36, w: w - 0.44, layout: 'inline', labelW: it.barLabelW || 1.35, rowH: 0.3, barH: 0.18, max: it.barMax, items: it.bars });
     if (it.metric) {
       RR(s, { x: x + 0.22, y: o.y + h - 0.56, w: w - 0.44, h: 0.38, fill: { color: acc ? C.ICE : C.BG }, rectRadius: 0.19 });
       T(s, it.metric, { x: x + 0.34, y: o.y + h - 0.56, w: w - 0.68, h: 0.38, fontSize: TYPE.body, bold: true, color: acc ? C.BLUE : C.NAVY, valign: 'middle' });
@@ -359,8 +365,10 @@ function budgetBar(s, o) {
     else shorts.push({ x, text: sg.short || (sg.label + ' ' + (sg.display || '')).trim() });
     x += w;
   });
-  const cap = shorts.map((t) => t.text).join('  ·  '), cw = Math.min(W, (cap.length * TYPE.source * CHAR_W) / 72 + 0.2);
-  if (shorts.length) T(s, cap, { x: x0 + W - cw, y: y + h + 0.04, w: cw, h: 0.22, fontSize: TYPE.source, bold: true, color: C.BLUE, align: 'right' });
+  const cap = shorts.map((t) => t.text).join('  ·  '), need = (cap.length * TYPE.source * CHAR_W) / 72 + 0.2;
+  const from = shorts.length ? shorts[0].x : x0 + W, room = x0 + W - from;
+  const stack = need > room + 0.3, cw = stack ? Math.max(room, Math.max(...shorts.map((t) => t.text.length)) * TYPE.source * CHAR_W / 72 + 0.2) : Math.max(room, need);
+  if (shorts.length) T(s, stack ? shorts.map((t) => t.text).join('\n') : cap, { x: x0 + W - cw, y: y + h + 0.04, w: cw, h: stack ? 0.36 : 0.22, fontSize: TYPE.source, bold: true, color: C.BLUE, align: 'right' });
   return y + h + 0.3;
 }
 
@@ -372,16 +380,47 @@ async function matrix(deck, s, o) {
   LN(s, x0 + 0.1, y0 + h / 2, w - 0.2, 0, C.LINE, 0.75, { dashType: 'dash' });
   T(s, o.xLabel, { x: x0, y: y0 + h + 0.06, w, h: 0.24, fontSize: TYPE.caption, color: C.MUTE, align: 'center' });
   T(s, o.yLabel, { x: x0 - 0.34, y: y0, w: 0.28, h, fontSize: TYPE.caption, color: C.MUTE, align: 'center', valign: 'middle', vert: 'vert270' });
+  // place chips, clamp them inside the frame, then push apart any that overlap (logo matrices get crowded)
+  const placed = [];
   for (const it of o.items) {
-    const cx = x0 + 0.2 + it.x * (w - 0.4), cy = y0 + h - 0.2 - it.y * (h - 0.4);
+    let cw = 0.3, ih = 0.22, iw = 0.22;
     if (it.logo) {
       const [lw, lh] = await imgSize(deck, it.logo), ar = lw / lh;
-      const ih = ar > 6 ? 0.16 : ar > 3.5 ? 0.2 : 0.26, iw = Math.min(1.5, ih * ar), cwid = iw + 0.3;
-      card(s, cx - cwid / 2, cy - 0.21, cwid, 0.42, { fill: C.WHITE, border: it.accent ? C.BLUE : C.LINE, borderW: it.accent ? 1.5 : 0.75, radius: 0.21 });
-      await image(deck, s, it.logo, cx, cy, iw, ih);
+      ih = ar > 6 ? 0.16 : ar > 3.5 ? 0.2 : 0.26; iw = Math.min(1.4, ih * ar); cw = iw + 0.3;
+    } else cw = 0.3 + (it.label.length * TYPE.caption * CHAR_W) / 72;
+    const cx = x0 + 0.2 + it.x * (w - 0.4), cy = y0 + h - 0.2 - it.y * (h - 0.4);
+    placed.push({ it, cw, iw, ih, cx, cy });
+  }
+  const pad = 0.1;
+  const clamp = (p) => { p.cx = Math.min(Math.max(p.cx, x0 + pad + p.cw / 2), x0 + w - pad - p.cw / 2); p.cy = Math.min(Math.max(p.cy, y0 + pad + 0.21), y0 + h - pad - 0.21); };
+  placed.forEach(clamp);
+  for (let pass = 0; pass < 20; pass++) {
+    let moved = false;
+    for (let a = 0; a < placed.length; a++) for (let b = a + 1; b < placed.length; b++) {
+      const A = placed[a], B = placed[b];
+      const ox = (A.cw + B.cw) / 2 + 0.12 - Math.abs(A.cx - B.cx), oy = 0.42 + 0.06 - Math.abs(A.cy - B.cy);
+      if (ox > 0 && oy > 0) {
+        const dir = A.cx <= B.cx ? -1 : 1;
+        A.cx += (dir * ox) / 2; B.cx -= (dir * ox) / 2; clamp(A); clamp(B); moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  if (o.quadrants) {
+    const q = o.quadrants, qs = { fontSize: TYPE.caption, color: C.MUTE, italic: true };
+    if (q[0]) T(s, q[0], Object.assign({ x: x0 + 0.12, y: y0 + 0.08, w: w / 2 - 0.2, h: 0.22 }, qs));
+    if (q[1]) T(s, q[1], Object.assign({ x: x0 + w / 2 + 0.08, y: y0 + 0.08, w: w / 2 - 0.2, h: 0.22, align: 'right' }, qs));
+    if (q[2]) T(s, q[2], Object.assign({ x: x0 + 0.12, y: y0 + h - 0.3, w: w / 2 - 0.2, h: 0.22 }, qs));
+    if (q[3]) T(s, q[3], Object.assign({ x: x0 + w / 2 + 0.08, y: y0 + h - 0.3, w: w / 2 - 0.2, h: 0.22, align: 'right' }, qs));
+  }
+  for (const p of placed) {
+    const it = p.it;
+    if (it.logo) {
+      card(s, p.cx - p.cw / 2, p.cy - 0.21, p.cw, 0.42, { fill: C.WHITE, border: it.accent ? C.BLUE : C.LINE, borderW: it.accent ? 1.5 : 0.75, radius: 0.21 });
+      await image(deck, s, it.logo, p.cx, p.cy, p.iw, p.ih);
     } else {
-      OV(s, { x: cx - 0.11, y: cy - 0.11, w: 0.22, h: 0.22, fill: { color: it.accent ? C.BLUE : C.GREY } });
-      T(s, it.label, { x: cx + 0.16, y: cy - 0.12, w: 1.8, h: 0.24, fontSize: TYPE.caption, bold: !!it.accent, color: it.accent ? C.BLUE : C.BODY, valign: 'middle' });
+      OV(s, { x: p.cx - 0.11, y: p.cy - 0.11, w: 0.22, h: 0.22, fill: { color: it.accent ? C.BLUE : C.GREY } });
+      T(s, it.label, { x: p.cx + 0.16, y: p.cy - 0.12, w: p.cw, h: 0.24, fontSize: TYPE.caption, bold: !!it.accent, color: it.accent ? C.BLUE : C.BODY, valign: 'middle' });
     }
   }
   return y0 + h + 0.32;
@@ -426,7 +465,7 @@ function decisionCards(s, o) {
 // Logo row: small, evenly spaced, greyscale-neutral
 async function logoRow(deck, s, o) {
   const x0 = o.x || G.L, W = o.w || G.CW, n = o.files.length, step = W / n, h = o.h || 0.32;
-  for (let i = 0; i < n; i++) await image(deck, s, o.files[i], x0 + step * (i + 0.5), o.y + h / 2, Math.min(step - 0.3, 1.3), h);
+  for (let i = 0; i < n; i++) await image(deck, s, o.files[i], x0 + step * (i + 0.5), o.y + h / 2, Math.max(0.3, Math.min(step - 0.12, 1.3)), h);
   return o.y + h;
 }
 
@@ -489,10 +528,7 @@ async function journey(s, o) {
     T(s, st.title, { x, y: yT, w: cw, h: 0.3, fontSize: TYPE.head, bold: true, color: C.INK, align: 'center', valign: 'middle' });
     RR(s, { x, y: yC, w: cw, h: chipH, fill: { color: C.ICE }, rectRadius: 0.08 });
     T(s, st.stat, { x: x + 0.06, y: yC, w: cw - 0.12, h: chipH, fontSize: TYPE.body, bold: true, color: C.BLUE, align: 'center', valign: 'middle' });
-    if (st.mech) {
-      T(s, o.mechLabel || 'Mechanism', { x, y: yM, w: cw, h: 0.2, fontSize: TYPE.source, color: C.MUTE, align: 'center' });
-      T(s, st.mech, { x, y: yM + 0.2, w: cw, h: 0.3, fontSize: TYPE.body, color: C.BODY, align: 'center', valign: 'middle' });
-    }
+    if (st.mech) T(s, st.mech, { x, y: yM, w: cw, h: 0.5, fontSize: TYPE.body, color: C.BODY, align: 'center', valign: 'middle' });
     s.addShape('downArrow', { x: cx - 0.1, y: yA, w: 0.2, h: 0.26, fill: { color: C.LT }, line: { color: C.LT, width: 0 } });
     RR(s, { x, y: yA + 0.36, w: cw, h: pillH, fill: { color: C.NAVY }, rectRadius: 0.08 });
     T(s, st.fix, { x: x + 0.05, y: yA + 0.36, w: cw - 0.1, h: pillH, fontSize: TYPE.body, bold: true, color: C.WHITE, align: 'center', valign: 'middle' });

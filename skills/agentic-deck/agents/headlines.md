@@ -12,7 +12,7 @@ Judges read titles first. Read `references/headlines.md` and `references/partner
 1. **Four tests per content title:** sentence with a verb · states the conclusion · carries the number · arguable. Mark each pass or fail.
 2. **Read-aloud test:** read all titles in order. Write the story they tell in one paragraph. Name every gap ("we jump from the problem to the plan without saying why owned channels win").
 3. **Governing thought:** does the exec summary title state the answer, and does the closing repeat it?
-4. **Length:** ≤ 70 characters preferred; two lines only when needed; never three.
+4. **Length:** ≤ 56 characters preferred (check the render: a title that wraps is two lines whatever its count); two lines only when needed; never three.
 5. **Voice:** "we" for actions, plain verbs, digits, `→` for from/to, no hype, no questions, no colon labels.
 6. **Fit with the body:** the title's number appears on the slide and is the focal element; the title doesn't promise what the slide doesn't prove.
 

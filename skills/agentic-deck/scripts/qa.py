@@ -4,7 +4,7 @@
 Usage:  python3 qa.py deck.pptx [--brief brief.json] [--render] [--json out.json]
 
 FAIL checks (exit 1):
-  A  Title: present (shape 'ad-title'), <= 95 chars, no trailing period/colon/question mark,
+  A  Title: present (shape 'ad-title'), at most two lines (measured with the real Inter Bold metrics), no trailing period/colon/question mark,
      not ALL CAPS, not a 1 to 4 word topic label
   B  Text: em/en dashes, hype or AI-filler words, decorative glyphs, exclamation marks, 'So what'
   C  Fonts: brief font only (default Inter)
@@ -17,7 +17,7 @@ FAIL checks (exit 1):
   L  Words: over the density cap (brief.density: presenter 110 / balanced 190 / exhaustive 320, default
      exhaustive) or any single text block over 32 words (exhaustive = many short facts, never paragraphs)
 WARN checks:
-  A2 title over 70 chars (two lines) · core slide title with no number · no verb-like word
+  A2 title wraps to two lines (measured) · core slide title with no number · no verb-like word
   M  more than four distinct font sizes on a slide (aim for three: title, body, source)
   N  fewer than three visual elements on a content slide (text-only slide)
   O  no source line on a content slide
@@ -143,6 +143,35 @@ def whitespace(images, dark_flags, min_gap_in=0.7):
     return res
 
 
+_FONTS = {}
+
+
+def font_path(family='Inter', bold=True):
+    key = (family, bold)
+    if key not in _FONTS:
+        try:
+            out = subprocess.run(['fc-match', '-f', '%{file}', f'{family}:{"bold" if bold else "regular"}'], capture_output=True, text=True).stdout.strip()
+            _FONTS[key] = out if out and family.lower() in os.path.basename(out).lower() else None
+        except Exception:
+            _FONTS[key] = None
+    return _FONTS[key]
+
+
+def measured_lines(text, width_in, size_pt, family='Inter', bold=True):
+    """Wrap text with the real font metrics (PIL); None when the font file isn't available."""
+    fp = font_path(family, bold)
+    if not fp: return None
+    from PIL import ImageFont
+    f = ImageFont.truetype(fp, int(size_pt * 10))          # 10 px per pt: length in pt*10
+    limit = width_in * 72 * 10
+    lines, cur = 1, ''
+    for w in text.split():
+        trial = (cur + ' ' + w).strip()
+        if f.getlength(trial) <= limit or not cur: cur = trial
+        else: lines += 1; cur = w
+    return lines
+
+
 def furniture(sh): return sh.name.startswith('ad-furn') or sh.name in ('ad-title', 'ad-source')
 
 
@@ -170,8 +199,10 @@ def main(path, brief=None, render=False, jpath=None):
             else:
                 t = ts[0].text_frame.text.strip(); titles.append((n, t))
                 words = len(t.split())
-                if len(t) > 95: add('FAIL', n, 'A', f'title {len(t)} chars, three lines: "{t}"')
-                elif len(t) > 70: add('WARN', n, 'A2', f'title {len(t)} chars (two lines), one line is stronger: "{t}"')
+                ml = measured_lines(t, ts[0].width / E, 24, font, True)
+                if ml is None: ml = 1 if len(t) <= 56 else 2 if len(t) <= 110 else 3
+                if ml >= 3: add('FAIL', n, 'A', f'title runs to {ml} lines: "{t}"')
+                elif ml == 2: add('WARN', n, 'A2', f'title wraps to two lines ({len(t)} chars); one line is stronger: "{t}"')
                 if t[-1] in '.:?': add('FAIL', n, 'A', f'title ends with "{t[-1]}": "{t}"')
                 if t.isupper() and len(t) > 6: add('FAIL', n, 'A', f'title in caps: "{t}"')
                 if words <= 4 and not re.search(r'\d', t) and t.lower() not in ('appendix', 'sources', 'agenda'):

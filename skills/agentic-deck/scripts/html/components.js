@@ -28,7 +28,7 @@ const STYLE = `
 body{font-family:Inter,"Inter Variable",system-ui,sans-serif;color:var(--body);background:#E5E7EB;-webkit-font-smoothing:antialiased}
 .slide{position:relative;width:1280px;height:720px;overflow:hidden;background:#fff;page-break-after:always;break-after:page}
 .slide.dark{background:linear-gradient(135deg,#0A1F44 0%,#132E66 55%,#1D4ED8 130%);color:#fff}
-.title{position:absolute;left:53px;top:33px;width:980px;height:88px;display:flex;align-items:center;font-size:30px;line-height:1.2;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+.title{position:absolute;left:53px;top:33px;width:1003px;height:88px;display:flex;align-items:center;font-size:30px;line-height:1.2;font-weight:700;color:var(--navy);letter-spacing:-.01em}
 .furn{position:absolute;top:63px;right:48px;display:flex;align-items:center;gap:14px}
 .furn img{max-height:25px;max-width:82px}
 .tag{height:27px;padding:0 13px;border-radius:999px;background:var(--navy);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center}

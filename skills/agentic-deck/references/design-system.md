@@ -54,7 +54,7 @@ Inter only (install from the OS or fonts.google.com; LibreOffice renders it exac
 | Element | Position |
 |---|---|
 | Content margins | x 0.55 to 12.78 (width 12.23) |
-| Title | x 0.55, y 0.34, w 10.2, h 0.92, valign middle (fits two lines) |
+| Title | x 0.55, y 0.34, w 10.45, h 0.92, valign middle (≈ 56 chars a line, two lines max) |
 | Logo / tag pill | logo centred x 11.62, y 0.8, max 0.85 × 0.26; pill x 12.2, y 0.66, 0.58 × 0.28 |
 | Content band | y 1.42 to 6.88 |
 | Footer | hairline y 7.0; source x 0.55, y 7.07, 8pt; "Team · page" right-aligned |
