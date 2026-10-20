@@ -74,11 +74,11 @@
  "tiktok": {
   "name": "TikTok",
   "found": true,
-  "source": "Wikipedia infobox (TikTok_USDS)",
-  "url": "https://upload.wikimedia.org/wikipedia/en/5/5a/TikTok_USDS_JV_Logo.png",
+  "source": "Simple Icons (flat brand mark)",
+  "url": "simple-icons:tiktok",
   "file": "tiktok.png",
   "size": [
-   727,
+   210,
    240
   ],
   "white": true

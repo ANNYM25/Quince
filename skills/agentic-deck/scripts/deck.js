@@ -223,7 +223,7 @@ function divider(deck, o) {
   if (o.sub) T(s, o.sub, { x: 0.7, y: 1.9, w: 11, h: 0.5, fontSize: 16, color: C.ON_DARK });
   (o.index || []).forEach((col, c) => {
     const cx = 0.7 + c * 3.25;
-    T(s, col.head.toUpperCase(), { x: cx, y: 2.75, w: 3.0, h: 0.3, fontSize: 10, bold: true, color: C.MID, charSpacing: 1 });
+    T(s, col.head, { x: cx, y: 2.7, w: 3.0, h: 0.34, fontSize: 14, bold: true, color: C.WHITE });
     col.items.forEach(([n, t], k) => {
       T(s, String(n), { x: cx, y: 3.15 + k * 0.36, w: 0.32, h: 0.32, fontSize: 12, color: C.ON_DARK2, align: 'right', valign: 'middle' });
       T(s, t, { x: cx + 0.45, y: 3.15 + k * 0.36, w: 2.55, h: 0.32, fontSize: 12, color: C.WHITE, valign: 'middle' });
@@ -413,6 +413,16 @@ async function matrix(deck, s, o) {
     if (q[2]) T(s, q[2], Object.assign({ x: x0 + 0.12, y: y0 + h - 0.3, w: w / 2 - 0.2, h: 0.22 }, qs));
     if (q[3]) T(s, q[3], Object.assign({ x: x0 + w / 2 + 0.08, y: y0 + h - 0.3, w: w / 2 - 0.2, h: 0.22, align: 'right' }, qs));
   }
+  // the move: item.to = { x, y, label } draws a dashed target ring and an arrow from today to target
+  for (const p of placed) {
+    const to = p.it.to;
+    if (!to) continue;
+    const tx = x0 + 0.2 + to.x * (w - 0.4), ty = y0 + h - 0.2 - to.y * (h - 0.4);
+    RR(s, { x: tx - p.cw / 2, y: ty - 0.21, w: p.cw, h: 0.42, fill: { color: C.ICE }, line: { color: C.BLUE, width: 1, dashType: 'dash' }, rectRadius: 0.21 });
+    if (to.label) T(s, to.label, { x: tx - p.cw / 2, y: ty - 0.21, w: p.cw, h: 0.42, fontSize: TYPE.caption, bold: true, color: C.BLUE, align: 'center', valign: 'middle' });
+    const dy = ty > p.cy ? -0.21 : 0.21;
+    arrow(s, p.cx, p.cy - dy, tx, ty + dy, C.BLUE, 1.5);
+  }
   for (const p of placed) {
     const it = p.it;
     if (it.logo) {
@@ -451,15 +461,18 @@ function timeline(s, o) {
   return o.y + (o.items.some((i) => i.body) ? 1.95 : 1.25);
 }
 
-// Decision cards (scale / adjust / stop, or gates): coloured border, condition, action
+// Decision cards (scale / adjust / stop, or gates): coloured border, optional icon, condition, action. Returns a Promise of y.
 function decisionCards(s, o) {
+  const pending = [];
   const n = o.items.length, gap = 0.2, x0 = o.x || G.L, W = o.w || G.CW, w = (W - gap * (n - 1)) / n, h = o.h || 1.1;
   o.items.forEach((it, i) => {
     const x = x0 + i * (w + gap), col = it.color || [C.BLUE, C.NAVY, C.MUTE][i % 3];
     card(s, x, o.y, w, h, { fill: C.WHITE, border: col, borderW: 1.25 });
-    runs(s, [{ text: it.head + '  ', bold: true, color: col, size: TYPE.body }, { text: it.when, color: C.INK, size: TYPE.body, breakLine: true }, { text: it.then, bold: true, color: C.NAVY, size: TYPE.body }], { x: x + 0.16, y: o.y, w: w - 0.3, h, valign: 'middle' });
+    const ix = it.icon ? 0.52 : 0;
+    runs(s, [{ text: it.head + '  ', bold: true, color: col, size: TYPE.body }, { text: it.when, color: C.INK, size: TYPE.body, breakLine: true }, { text: it.then, bold: true, color: C.NAVY, size: TYPE.body }], { x: x + 0.16 + ix, y: o.y, w: w - 0.3 - ix, h, valign: 'middle' });
+    if (it.icon) pending.push(iconCircle(s, x + 0.16, o.y + h / 2 - 0.19, 0.38, it.icon, col));
   });
-  return o.y + h;
+  return Promise.all(pending).then(() => o.y + h);
 }
 
 // Logo row: small, evenly spaced, greyscale-neutral
@@ -497,7 +510,7 @@ function hbars(s, o) {
   o.items.forEach((it, i) => {
     const y = o.y + i * rowH, by = inline ? y + (rowH - bh) / 2 : y + rowH - bh - 0.06;
     T(s, it.label, inline ? { x: o.x, y, w: lw - 0.1, h: rowH, fontSize: TYPE.body, color: C.INK, valign: 'middle' } : { x: o.x, y, w: o.w, h: rowH - bh - 0.1, fontSize: TYPE.body, color: C.INK, valign: 'bottom' });
-    const w = Math.max(0.08, (bw * it.value) / max);
+    const w = Math.max(0.15, (bw * it.value) / max);
     RR(s, { x: o.x + lw, y: by, w, h: bh, fill: { color: it.color || (it.accent ? C.BLUE : it.muted ? C.GREY : C.MID) }, rectRadius: 0.04 });
     T(s, it.display || String(it.value), { x: o.x + lw + w + 0.08, y: by - 0.02, w: vw, h: bh + 0.04, fontSize: TYPE.body, bold: true, color: C.NAVY, valign: 'middle' });
   });

@@ -43,11 +43,20 @@ function commonsUrl(file, wiki) {
   return `https://upload.wikimedia.org/wikipedia/${wiki}/${h[0]}/${h.slice(0, 2)}/${encodeURIComponent(f)}`;
 }
 
-async function fromWikipedia(name, title) {
-  title = title || (await wikiTitle(name));
-  if (!title) return null;
+async function pageSource(title) {
   const page = await get(`https://en.wikipedia.org/w/rest.php/v1/page/${encodeURIComponent(title.replace(/ /g, '_'))}`);
   if (!page || !page.source) return null;
+  const redirect = page.source.match(/^#REDIRECT\s*\[\[([^\]|#]+)/i);
+  return redirect ? pageSource(redirect[1]) : page.source;
+}
+
+async function fromWikipedia(name, title) {
+  // 1) the pinned title, 2) the exact brand article (so "TikTok" is the app, not a joint venture), 3) search
+  let source = title ? await pageSource(title) : null;
+  if (!source && !title) { source = await pageSource(name); if (source && !/\|\s*logo\s*=/i.test(source)) source = null; if (source) title = name; }
+  if (!source && !title) { title = await wikiTitle(name); source = title ? await pageSource(title) : null; }
+  if (!source) return null;
+  const page = { source };
   const m = page.source.match(/\|\s*logo\s*=\s*([^\n]+)/i);
   if (!m) return null;
   const raw = m[1].replace(/^\s*\[\[\s*(File|Image):/i, '').split('|')[0].replace(/\]\]/g, '').replace(/<!--.*?-->/g, '').trim();
