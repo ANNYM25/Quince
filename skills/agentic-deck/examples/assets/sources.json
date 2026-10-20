@@ -1,0 +1,129 @@
+{
+ "amazon": {
+  "name": "Amazon",
+  "found": true,
+  "source": "Wikipedia infobox (Amazon (company))",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/0/06/Amazon_2024.svg",
+  "file": "amazon.png",
+  "size": [
+   717,
+   240
+  ],
+  "white": true
+ },
+ "shein": {
+  "name": "Shein",
+  "found": true,
+  "source": "Wikipedia infobox (Shein)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Shein_Logo_2017.svg",
+  "file": "shein.png",
+  "size": [
+   1154,
+   240
+  ],
+  "white": true
+ },
+ "everlane": {
+  "name": "Everlane",
+  "found": true,
+  "source": "Wikipedia infobox (Everlane)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Everlane_logo.png",
+  "file": "everlane.png",
+  "size": [
+   2046,
+   206
+  ],
+  "white": true
+ },
+ "uniqlo": {
+  "name": "Uniqlo",
+  "found": true,
+  "source": "Wikipedia infobox (Uniqlo)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Uniqlo_logo_Japanese.svg",
+  "file": "uniqlo.png",
+  "size": [
+   541,
+   240
+  ],
+  "white": true
+ },
+ "williams_sonoma": {
+  "name": "Williams-Sonoma",
+  "found": true,
+  "source": "Wikipedia infobox (Williams-Sonoma,_Inc.)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/b/bb/Williams-Sonoma_logo.svg",
+  "file": "williams_sonoma.png",
+  "size": [
+   3288,
+   233
+  ],
+  "white": true
+ },
+ "meta": {
+  "name": "Meta",
+  "found": true,
+  "source": "Wikipedia infobox (Meta Platforms)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg",
+  "file": "meta.png",
+  "size": [
+   1191,
+   240
+  ],
+  "white": true
+ },
+ "tiktok": {
+  "name": "TikTok",
+  "found": true,
+  "source": "Wikipedia infobox (TikTok_USDS)",
+  "url": "https://upload.wikimedia.org/wikipedia/en/5/5a/TikTok_USDS_JV_Logo.png",
+  "file": "tiktok.png",
+  "size": [
+   727,
+   240
+  ],
+  "white": true
+ },
+ "adobe": {
+  "name": "Adobe",
+  "found": true,
+  "source": "Wikipedia infobox (Adobe Inc.)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Adobe_Corporate_wordmark.svg",
+  "file": "adobe.png",
+  "size": [
+   949,
+   238
+  ],
+  "white": true
+ },
+ "quince": {
+  "name": "Quince",
+  "found": true,
+  "source": "Quince_Company_Logo.png (official wordmark file), trimmed; the Wikipedia infobox version is lower resolution",
+  "file": "quince.png",
+  "white": true
+ },
+ "google": {
+  "name": "Google",
+  "found": true,
+  "source": "Wikipedia infobox (Google)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/e/ee/Google_2026_logo.svg",
+  "file": "google.png",
+  "size": [
+   792,
+   240
+  ],
+  "white": true
+ },
+ "pinterest": {
+  "name": "Pinterest",
+  "found": true,
+  "source": "Wikipedia infobox (Pinterest)",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Pinterest_Logo_3.svg",
+  "file": "pinterest.png",
+  "size": [
+   1306,
+   240
+  ],
+  "white": true
+ }
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Own the Second Purchase",
+  "audience": "Case competition judges (Case Competition World Cup, graduate track; 7 core slides in fixed order + appendix; 5-minute delivery)",
+  "governing_thought": "Own the second purchase by moving up to $9M from rented to owned channels, with holdouts deciding every dollar.",
+  "tag": "G27",
+  "footer": "Team G27",
+  "exclude_strings": [],
+  "density": "exhaustive",
+  "elements_wanted": ["process chart", "real logos", "labelled bars", "journey row", "icons"],
+  "elements_banned": ["tables on core slides", "eyebrow labels", "stock photos"],
+  "design_wishes": ["rounded corners", "calm navy and blue palette", "council cover background", "minimal but exhaustive"],
+  "font": "Inter",
+  "extra_colours": [],
+  "core_slides": [2, 3, 4, 5, 6],
+  "outputs": ["pptx", "pdf", "html"],
+  "build_path": "pptx",
+  "loop": { "enabled": true, "max_rounds": 3, "council": true },
+  "note": "This example is a 5-content-slide excerpt of the full deck, built to demonstrate the patterns."
+}
